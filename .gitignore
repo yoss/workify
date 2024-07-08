@@ -1,5 +1,7 @@
 env/
 .vscode/
+staticfiles/
+media/
 
 *.log
 *.pot

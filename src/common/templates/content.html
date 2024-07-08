@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block header %}
+  {% include 'header.html' %}
+{% endblock %}
+
+{% block content %}
+  {% include 'logout_popup.html' %}
+  {% include 'sidebar.html' %}
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb h2">
+            {% block breadcrumbs  %}{% endblock %}
+          </ol>
+        </nav>          
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group" role="group">
+            {% block top-buttons  %}{% endblock %}    
+          </div>
+        </div>
+      </div>
+      {% include 'messages.html' %}
+      {% block main  %}{% endblock %}
+
+      {% comment %}{% include 'popup.html' %}{% endcomment %}
+    </main>
+{% endblock %}
