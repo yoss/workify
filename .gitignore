@@ -1,7 +1,6 @@
 env/
 .vscode/
-staticfiles/
-media/
+.env
 
 *.log
 *.pot
@@ -9,8 +8,8 @@ media/
 __pycache__
 db.sqlite3
 
-src/media/
-src/staticfiles/
+media/
+staticfiles/
 
 notebook.txt
 todo.txt
