@@ -10,7 +10,20 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
+
+DEBUG = os.environ.get('DJANGO_DEBUG', False)
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+MSAL_CLIENT_SECRET = os.environ.get('MSAL_CLIENT_SECRET')
+MSAL_CLIENT_ID = os.environ.get('MSAL_CLIENT_ID')
+MSAL_TENANT_ID = os.environ.get('MSAL_TENANT_ID')
+
+if (not SECRET_KEY or not MSAL_CLIENT_SECRET or not MSAL_CLIENT_ID or not MSAL_TENANT_ID):
+    raise ValueError("Environment variables not set")
+    
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,11 +32,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^w4=5%@%xql-$nl^7wom1^rchw=t(3#6^8!jhwyz8o6734#q1r'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
