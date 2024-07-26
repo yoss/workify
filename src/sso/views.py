@@ -80,6 +80,9 @@ def sso_callback(request):
     return redirect (REDIRECT_LOGIN)
 
 def sso_logout(request):
-    logout(request)
-    messages.success(request, "You've been logged out." )
-    return redirect(AUTHORITY + "/oauth2/v2.0/logout" + "?post_logout_redirect_uri=" + request.build_absolute_uri(reverse(REDIRECT_LOGIN)))
+    if request.method == 'GET':
+        return render(request, 'logout_popup.html', {'employee': request.user.employee})
+    if request.method == 'POST':        
+        logout(request)
+        messages.success(request, "You've been logged out." )
+        return redirect(AUTHORITY + "/oauth2/v2.0/logout" + "?post_logout_redirect_uri=" + request.build_absolute_uri(reverse(REDIRECT_LOGIN)))

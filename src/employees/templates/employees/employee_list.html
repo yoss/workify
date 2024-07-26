@@ -1,6 +1,6 @@
 {% extends "content.html" %}
 {% load static %}
-{% comment %}{% load show_avatar %}{% endcomment %}
+{% load show_avatar %}
 l 
 {% block breadcrumbs  %}
     <li class="breadcrumb-item active">Employees</li>
@@ -8,11 +8,11 @@ l
 
 {% block top-buttons %}
     {% if view.kwargs.all %}
-        <a href="" class="btn btn-outline-primary btn-sm">Show active</a>{% endif %}
+        <a href="{% url "employees:employee-list" %}" class="btn btn-outline-primary btn-sm">Show active</a>{% endif %}
     {% if not view.kwargs.all %}
-        <a href="" class="btn btn-outline-primary btn-sm">Show all</a>{% endif %}
+        <a href="{% url "employees:employee-list-all" %}" class="btn btn-outline-primary btn-sm">Show all</a>{% endif %}
     {% if perms.employees.create_employee %}
-        <a href="" class="btn btn-success btn-sm">New Employee</a>{% endif %}
+        <a href="{% url "employees:employee-create" %}" class="btn btn-success btn-sm">New Employee</a>{% endif %}
 {% endblock %}
 
 {% block main %}
@@ -21,8 +21,7 @@ l
         <thead>
             <tr>
                 <th scope="col" >#</th>
-                <th scope="col" ></th>
-                <th scope="col" class="col-4">Name</th>
+                <th scope="col" class="col-4" style="padding-left: 48px">Name</th>
                 <th scope="col" class="col-4">Email</th>
                 <th scope="col" >Status</th>
                 <th scope="col" >Actions</th>
@@ -32,8 +31,9 @@ l
             {% for employee in employees %}
             <tr scope="row">
                 <td>{{forloop.counter}}</td>
-                <td>{% comment %}{% show_avatar employee %}{% endcomment %}</td>
-                <td><a href="{{ employee.get_absolute_url }}">{{ employee }}</a> </td>
+                <td>
+                    <a href="{{ employee.get_absolute_url }}" style="text-decoration:none">{% show_avatar employee %}</a>
+                    <a href="{{ employee.get_absolute_url }}">{{ employee }}</a> </td>
                 <td>{{ employee.email }}</td>
                 <td>{% if  employee.user.is_active %} <span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-secondary">Archived</span>{% endif %}</td>
                 <td class="p-1">

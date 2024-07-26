@@ -1,0 +1,35 @@
+{% extends "content.html" %}
+{% load static %}
+
+{% block breadcrumbs  %}
+    <li class="breadcrumb-item"><a href="{% url 'employees:employee-list' %}">Employees</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{employee}} {% if not employee.user.is_active %} <span class="badge bg-secondary">Archived</span>{% endif %}</li>
+{% endblock %}
+
+{% block top-buttons %}
+    {% if employee.user.is_active and perms.employees.change_employee %}
+        <a href="{{ employee.get_update_url }}" class="btn btn-primary btn-sm">Edit</a>
+    {% endif %}
+    {% if employee.user.is_active and perms.employees.delete_employee %}
+        <button type="button"
+                hx-get="{{ employee.get_deactivate_url }}" 
+                hx-target="#PopupModalContent" 
+                hx-trigger="click"
+                data-bs-toggle="modal" 
+                data-bs-target="#PopupModal"
+                class="btn btn-danger btn-sm">Deactivate</button>
+    {% endif %}
+    {% if not employee.user.is_active and perms.employees.delete_employee %}
+        <button type="button"
+                hx-get="{{ employee.get_activate_url }}" 
+                hx-target="#PopupModalContent" 
+                hx-trigger="click"
+                data-bs-toggle="modal" 
+                data-bs-target="#PopupModal"
+                class="btn btn-success btn-sm">Activate</button>
+    {% endif %}
+{% endblock %}
+
+{% block content-main %}
+
+{% endblock %}
