@@ -11,7 +11,7 @@ l
         <a href="{% url "employees:employee-list" %}" class="btn btn-outline-primary btn-sm">Show active</a>{% endif %}
     {% if not view.kwargs.all %}
         <a href="{% url "employees:employee-list-all" %}" class="btn btn-outline-primary btn-sm">Show all</a>{% endif %}
-    {% if perms.employees.create_employee %}
+    {% if perms.employees.can_view_archived_employees %}
         <a href="{% url "employees:employee-create" %}" class="btn btn-success btn-sm">New Employee</a>{% endif %}
 {% endblock %}
 
@@ -21,7 +21,8 @@ l
         <thead>
             <tr>
                 <th scope="col" >#</th>
-                <th scope="col" class="col-4" style="padding-left: 48px">Name</th>
+                <th scope="col" ></th>
+                <th scope="col" class="col-4" >Name</th>
                 <th scope="col" class="col-4">Email</th>
                 <th scope="col" >Status</th>
                 <th scope="col" >Actions</th>
@@ -31,9 +32,14 @@ l
             {% for employee in employees %}
             <tr scope="row">
                 <td>{{forloop.counter}}</td>
-                <td>
-                    <a href="{{ employee.get_absolute_url }}" style="text-decoration:none">{% show_avatar employee %}</a>
-                    <a href="{{ employee.get_absolute_url }}">{{ employee }}</a> </td>
+                {% if employee == request.user.employee or perms.employees.view_all_employee_details %}
+                <td><a href="{{ employee.get_absolute_url }}" style="text-decoration:none">{% show_avatar employee %}</a></td>
+                <td><a href="{{ employee.get_absolute_url }}">{{ employee }}</a> </td>
+                {% else %}
+                <td>{% show_avatar employee %}</td>
+                <td>{{ employee }}</td>
+                {% endif %}
+
                 <td>{{ employee.email }}</td>
                 <td>{% if  employee.user.is_active %} <span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-secondary">Archived</span>{% endif %}</td>
                 <td class="p-1">

@@ -30,6 +30,40 @@
     {% endif %}
 {% endblock %}
 
-{% block content-main %}
-
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg">
+            {% if employee.avatar %}
+            <img src="{{ employee.avatar.url }}" alt="" class="img-thumbnail">
+            {% endif %}
+        </div>
+        <div class="col-lg">
+            <div class="row">
+                <div class="col">First name:</div>
+                <div class="col">{{ employee.user.first_name}}</div>
+            </div>
+            <div class="row">
+                <div class="col">Last name:</div>
+                <div class="col">{{ employee.user.last_name}}</div>
+            </div>
+            <div class="row">
+                <div class="col">Email:</div>
+                <div class="col"><a href="mailto:{{ employee.user.email}}">{{ employee.user.email}}</a></div>
+            </div>
+            <div class="row">
+                <div class="col">Tax ID:</div>
+                <div class="col">{{ employee.tax_id}}</div>
+            </div>
+            <div class="row">
+                <div class="col">Groups:</div>
+                <div class="col">
+                    {% for group in employee.user.groups.all %}
+                    <span class="badge bg-primary">{{ group }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

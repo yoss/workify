@@ -7,14 +7,16 @@
 </button>
 <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
 <div class="navbar-nav">
-  <div class="nav-item text-nowrap">
+  <div class="nav-item text-nowrap d-flex align-items-center">
+    <a href="{{ request.user.employee.get_absolute_url }}" class="nav-link px-3">
+      {% show_avatar request.user.employee %}
+    </a>
     <a  class="nav-link px-3" href="#"
         hx-get="{% url 'sso:logout' %}" 
         hx-target="#PopupModalContent" 
         hx-trigger="click"
         data-bs-toggle="modal" 
         data-bs-target="#PopupModal">
-      {% show_avatar request.user.employee %}
       Logout</a>
   </div>
 </div>

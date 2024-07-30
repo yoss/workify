@@ -1,15 +1,20 @@
 import hashlib
 from io import BytesIO
+
 from django.contrib import messages
+from django.contrib.auth.models import Group, User
 from django.utils.html import format_html
 from django.shortcuts import redirect
 from django.db import models
-from django.contrib.auth.models import User
 from django.urls import reverse, reverse_lazy
 from django.core.files.base import ContentFile
 from PIL import Image
 from utils.unique_slugify import unique_slugify
 
+class EmployeeGroups(models.TextChoices):
+    HR = 'human_resources', 'Human Resources'
+    MANAGEMENT = 'management', 'Management'
+    FINANCE = 'finance', 'Finance'
 
 class Employee(models.Model):    
     slug = models.SlugField(max_length=100, unique=True)
@@ -17,6 +22,14 @@ class Employee(models.Model):
     tax_id = models.CharField(max_length=20, blank=True, null=True)
     avatar = models.ImageField(upload_to='EmployeeAvatar/', blank=True)
     avatar_checksum = models.CharField(blank=True, max_length=50)
+
+    class Meta:
+        permissions = [
+            ('can_view_employee_list', 'Can view employee list'),
+            ('can_view_archived_employees', 'Can view archived employee list'),
+            ('view_all_employee_details', 'Can view all employee details'),
+            ('can_set_user_roles', 'Can set user roles'),
+        ]
 
     @classmethod
     def create_employee(cls, first_name, last_name, email, password, tax_id, avatar=None):
@@ -51,7 +64,7 @@ class Employee(models.Model):
             self.save()
         return
     
-    def update(self, email, tax_id, slug = None):
+    def update(self, email, tax_id, slug = None, groups = None):
         self.user.email = email
         self.user.username = email
         self.tax_id = tax_id
@@ -59,6 +72,12 @@ class Employee(models.Model):
             self.slug = unique_slugify(self.__class__, slug)
         self.user.save()    
         self.save()
+        if not groups:
+            return
+        self.user.groups.clear()
+        for group_name in groups:
+            group = Group.objects.get(name=group_name)
+            self.user.groups.add(group)
         return
 
     def deactivate(self, request):
@@ -78,7 +97,6 @@ class Employee(models.Model):
             messages.error(request, format_html("Employee <strong>{}</strong> is inactive.", self))
             return redirect(self.get_absolute_url())
         return callback
-
 
     def get_absolute_url(self): return reverse('employees:employee-detail', kwargs={'slug': self.slug})
     def get_update_url(self):   return reverse('employees:employee-update', kwargs={'slug': self.slug})

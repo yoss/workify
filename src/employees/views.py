@@ -1,32 +1,41 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.views import generic
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.utils.html import format_html
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
+# from django.contrib import messages
 
 from employees.models import Employee
+from employees.permissions import employee_detail_permission
 from .forms import EmployeeCreateForm, EmployeeUpdateForm
 
+
 class EmployeeList(PermissionRequiredMixin, generic.ListView):
-    permission_required = 'employees.view_employee'
+    permission_required = 'employees.can_view_employee_list'
     model = Employee
     context_object_name = 'employees'
+
     def get_queryset(self):
-        if self.kwargs.get('all', False) :
+        if self.kwargs.get('all', False) and self.request.user.has_perm('employees.can_view_archived_employees'):
             return self.model.objects.all()
         return self.model.objects.filter(user__is_active=True)
 
-class EmployeeDetail(PermissionRequiredMixin, generic.DetailView):
-    permission_required = 'employees.view_employee'
+class EmployeeDetail(UserPassesTestMixin, generic.DetailView):
     model = Employee
     context_object_name = 'employee'
+
+    def test_func(self): return employee_detail_permission(self)
 
 class EmployeeCreate(PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.add_employee'
     form_class = EmployeeCreateForm
     template_name = 'employees/employee_create_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         cd = form.cleaned_data
@@ -45,6 +54,11 @@ class EmployeeUpdate(PermissionRequiredMixin, SuccessMessageMixin, generic.FormV
     template_name = 'employees/employee_update_form.html'
     employee = Employee()
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+    
     def setup(self, request, *args, **kwargs):
         self.employee = get_object_or_404(Employee, slug=kwargs['slug'])
         return super().setup(request, *args, **kwargs)
@@ -59,11 +73,14 @@ class EmployeeUpdate(PermissionRequiredMixin, SuccessMessageMixin, generic.FormV
     
     def form_valid(self, form):
         cd = form.cleaned_data
-        self.employee.update(email = cd['email'], tax_id=cd['tax_id'], slug = cd['slug'])
+        if not self.request.user.has_perm('employees.can_set_user_roles'):
+            cd.pop('groups')
+        self.employee.update(email = cd['email'], tax_id=cd['tax_id'], slug = cd['slug'], groups = cd.get('groups'))
         return super().form_valid(form)
     
     def get_initial(self, **kwargs):
-        return {'email': self.employee.user.email, 'slug': self.employee.slug, 'tax_id': self.employee.tax_id, 'employee': self.employee}
+        employee_groups = list(self.employee.user.groups.values_list('name', flat=True))
+        return {'email': self.employee.user.email, 'slug': self.employee.slug, 'tax_id': self.employee.tax_id, 'employee': self.employee, 'groups': employee_groups}
     
     def get_success_message(self, cleaned_data):
         return format_html("Employee <strong>{}</strong> has been updated", self.employee)
