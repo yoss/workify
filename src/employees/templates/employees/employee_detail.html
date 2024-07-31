@@ -2,7 +2,10 @@
 {% load static %}
 
 {% block breadcrumbs  %}
-    <li class="breadcrumb-item"><a href="{% url 'employees:employee-list' %}">Employees</a></li>
+    <li class="breadcrumb-item">
+        {% if perms.employees.can_view_employee_list %}<a href="{% url 'employees:employee-list' %}">Employees</a>
+        {% else %}Employees{% endif %}
+    </li>
     <li class="breadcrumb-item active" aria-current="page">{{employee}} {% if not employee.user.is_active %} <span class="badge bg-secondary">Archived</span>{% endif %}</li>
 {% endblock %}
 
