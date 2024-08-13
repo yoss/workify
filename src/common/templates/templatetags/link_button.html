@@ -1,0 +1,8 @@
+{% if icon %}
+    <div class="btn-group me-2" role="group" >    
+        <a href="{{ url }}" class="btn btn-{{ css_class }} btn-sm" target="{{ target }}"><span data-feather="{{ icon }}"></span></a>
+        <a href="{{ url }}" class="btn btn-outline-{{ css_class }} btn-sm" target="{{ target }}">{{ text }}</a>
+    </div>
+{% else %}
+    <a href="{{ url }}" class="btn btn-{{ css_class }} btn-sm me-2" target="{{ target }}">{{ text }}</a>
+{% endif %}

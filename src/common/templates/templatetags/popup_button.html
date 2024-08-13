@@ -1,0 +1,26 @@
+{% if icon %}
+    <div class="btn-group me-2" role="group" >    
+        <button type="button"
+            hx-get="{{ url }}" 
+            hx-target="#PopupModalContent" 
+            hx-trigger="click"
+            data-bs-toggle="modal" 
+            data-bs-target="#PopupModal"
+            class="btn btn-{{ css_class }} btn-sm"><span data-feather="{{icon}}"></button>
+        <button type="button"
+            hx-get="{{ url }}" 
+            hx-target="#PopupModalContent" 
+            hx-trigger="click"
+            data-bs-toggle="modal" 
+            data-bs-target="#PopupModal"
+            class="btn btn-outline-{{ css_class }} btn-sm">{{ text}}</button>
+    </div>
+{% else %}
+    <button type="button"
+        hx-get="{{ url }}" 
+        hx-target="#PopupModalContent" 
+        hx-trigger="click"
+        data-bs-toggle="modal" 
+        data-bs-target="#PopupModal"
+        class="btn btn-{{ css_class }} btn-sm" me-2>{{ text}}</button>
+{% endif %}

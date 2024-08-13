@@ -1,37 +1,6 @@
 {% extends "content.html" %}
 {% load static %}
-
-{% block breadcrumbs  %}
-    <li class="breadcrumb-item">
-        {% if perms.employees.can_view_employee_list %}<a href="{% url 'employees:employee-list' %}">Employees</a>
-        {% else %}Employees{% endif %}
-    </li>
-    <li class="breadcrumb-item active" aria-current="page">{{employee}} {% if not employee.user.is_active %} <span class="badge bg-secondary">Archived</span>{% endif %}</li>
-{% endblock %}
-
-{% block top-buttons %}
-    {% if employee.user.is_active and perms.employees.change_employee %}
-        <a href="{{ employee.get_update_url }}" class="btn btn-primary btn-sm">Edit</a>
-    {% endif %}
-    {% if employee.user.is_active and perms.employees.delete_employee %}
-        <button type="button"
-                hx-get="{{ employee.get_deactivate_url }}" 
-                hx-target="#PopupModalContent" 
-                hx-trigger="click"
-                data-bs-toggle="modal" 
-                data-bs-target="#PopupModal"
-                class="btn btn-danger btn-sm">Deactivate</button>
-    {% endif %}
-    {% if not employee.user.is_active and perms.employees.delete_employee %}
-        <button type="button"
-                hx-get="{{ employee.get_activate_url }}" 
-                hx-target="#PopupModalContent" 
-                hx-trigger="click"
-                data-bs-toggle="modal" 
-                data-bs-target="#PopupModal"
-                class="btn btn-success btn-sm">Activate</button>
-    {% endif %}
-{% endblock %}
+{% load workify_tags %}
 
 {% block main %}
 <div class="container">
@@ -66,7 +35,65 @@
                     {% endfor %}
                 </div>
             </div>
+            <div class="row">
+                <div class="col">Documents:</div>
+                <div class="col"><a href="#documents_section" >[{{ employee.employeedocument_set.count }}]</a></div>
+            </div>
+            <div class="row">
+                <div class="col">Rates:</div>
+                <div class="col">[todo] Rates count and link</div>
+            </div>
+            <div class="row">
+                <div class="col">Time reports:</div>
+                <div class="col">[todo] TR count and link</div>
+            </div>
         </div>
     </div>
 </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="documents_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        Documents
+      </ol>
+    </nav>          
+    
+    <div class="btn-toolbar mb-2 mb-md-0">
+      {% link_button employee.get_new_document_url 'success' 'Add document' 'plus'  %}
+    </div>
+</div>
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Signature day</th>
+            <th scope="col" >Type</th>
+            <th scope="col" >Reference</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in employee.employeedocument_set.all %}
+        <tr scope="row">
+            <td>{{forloop.counter}}</td>
+            <td>{{ document.name }}</td>
+            <td>{{ document.sign_date }}</td>
+            <td>{{ document.get_document_type_display }}</td>
+            <td>
+                {% if document.reference_document %}
+                <a href="{{document.reference_document.document_file.url}}">{{ document.reference_document }}</a> 
+                <a href="{{document.reference_document.document_file.url}}"><span data-feather="external-link"></span></a> 
+                {% endif %}
+            </td>
+            <td>                
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                    {% link_button document.document_file.url 'primary' 'open' 'external-link' '_blank' %}
+                    {% link_button document.get_update_url 'success' 'edit' 'edit' %}
+                    {% popup_button document.get_delete_url 'danger' 'delete' 'trash-2' %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

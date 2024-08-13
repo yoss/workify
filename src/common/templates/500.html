@@ -1,0 +1,14 @@
+{% extends "content.html" %}
+
+{% block topbar %}
+  <h1 class="h2">Server error</h1>
+{% endblock %}
+
+{% block main %}
+  <div class="text-center">
+    <div class="error mx-auto" data-text="500">500</div>
+    <p class="lead text-gray-800 mb-5">Oh no! Our spaghetti code is not working properly.</p>
+    <p class="text-gray-500 mb-0">We will be back soon...</p>
+    <a href="/">← Back to Start</a>
+  </div>
+{% endblock %}

@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEBUG = os.environ.get('DJANGO_DEBUG', False)
+# DEBUG = False
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 MSAL_CLIENT_SECRET = os.environ.get('MSAL_CLIENT_SECRET')
 MSAL_CLIENT_ID = os.environ.get('MSAL_CLIENT_ID')
@@ -34,6 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = ['*']
 
 
 # Application definition

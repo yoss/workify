@@ -40,14 +40,28 @@ class Employee(models.Model):
         return employee
 
     @classmethod
-    def list_active_employees_url(cls):
-        return reverse_lazy('employees:employee-list')
+    def list_active_employees_url(cls): return reverse_lazy('employees:employee-list')
+
+    @classmethod
+    def list_all_employees_url(cls): return reverse_lazy('employees:employee-list-all')
+
+    @classmethod
+    def get_create_url(cls): return reverse_lazy('employees:employee-create')
     
     def __str__(self):
         return self.user.get_full_name()
 
+    @property
     def email(self):
         return self.user.email 
+    
+    @property
+    def is_inactive(self):
+        return not self.user.is_active
+    
+    @property
+    def is_active(self):
+        return self.user.is_active
 
     def sso_update_avatar(self, avatar_content):
         if not avatar_content:
@@ -80,16 +94,14 @@ class Employee(models.Model):
             self.user.groups.add(group)
         return
 
-    def deactivate(self, request):
+    def deactivate(self):
         self.user.is_active = False
         self.user.save()
-        messages.error(request, format_html("Employee <strong>{}</strong> has been deactivated", self))
         return
     
-    def activate(self, request):
+    def activate(self):
         self.user.is_active = True
         self.user.save()
-        messages.success(request, format_html("Employee <strong>{}</strong> has been activated", self))
         return
 
     def redirect_if_inactive(self, request, callback):
@@ -97,8 +109,48 @@ class Employee(models.Model):
             messages.error(request, format_html("Employee <strong>{}</strong> is inactive.", self))
             return redirect(self.get_absolute_url())
         return callback
+    
+
+    def add_document(self, name, sign_date, document_file, document_type, reference_document=None):
+        document = EmployeeDocument(employee=self, name=name, sign_date=sign_date, document_file=document_file, document_type=document_type, reference_document=reference_document)
+        document.save()
+        return document
 
     def get_absolute_url(self): return reverse('employees:employee-detail', kwargs={'slug': self.slug})
     def get_update_url(self):   return reverse('employees:employee-update', kwargs={'slug': self.slug})
     def get_deactivate_url(self): return reverse('employees:employee-deactivate', kwargs={'slug': self.slug})
     def get_activate_url(self): return reverse('employees:employee-activate', kwargs={'slug': self.slug})
+
+    def get_new_document_url(self): return reverse('employees:employee-document-create', kwargs={'slug': self.slug})
+
+class EmployeeDocumentTypes(models.TextChoices):
+    CONTRACT = 'contract', 'Contract'
+    AMENDMENT = 'amendment', 'Amendment'
+    TERMINATION = 'termination', 'Termination Notice'
+    OTHER = 'other', 'Other'
+
+class EmployeeDocument(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    sign_date = models.DateField()
+    document_file = models.FileField(upload_to='EmployeeDocuments/')
+    document_type = models.CharField(max_length=20, choices=EmployeeDocumentTypes.choices)
+    reference_document = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.sign_date.strftime('%d.%m.%Y')}" 
+
+    def update(self, cleaned_data):
+        self.name = cleaned_data['name']
+        self.sign_date = cleaned_data['sign_date']
+        self.document_file = cleaned_data['document_file']
+        self.document_type = cleaned_data['document_type']
+        self.reference_document = cleaned_data['reference_document']
+        self.save()
+
+
+    def get_update_url(self):   return reverse('employees:employee-document-update', kwargs={'slug': self.employee.slug, 'pk': self.pk})
+    def get_delete_url(self):   return reverse('employees:employee-document-delete', kwargs={'slug': self.employee.slug, 'pk': self.pk})
+    # def get_absolute_url(self): return reverse('employees:contract-detail', kwargs={'pk': self.pk})
+    # def get_update_url(self):   return reverse('employees:contract-update', kwargs={'pk': self.pk})
+    # def get_delete_url(self):   return reverse('employees:contract-delete', kwargs={'pk': self.pk})

@@ -1,19 +1,6 @@
 {% extends "content.html" %}
 {% load static %}
-{% load show_avatar %}
-l 
-{% block breadcrumbs  %}
-    <li class="breadcrumb-item active">Employees</li>
-{% endblock %}
-
-{% block top-buttons %}
-    {% if view.kwargs.all %}
-        <a href="{% url "employees:employee-list" %}" class="btn btn-outline-primary btn-sm">Show active</a>{% endif %}
-    {% if not view.kwargs.all %}
-        <a href="{% url "employees:employee-list-all" %}" class="btn btn-outline-primary btn-sm">Show all</a>{% endif %}
-    {% if perms.employees.can_view_archived_employees %}
-        <a href="{% url "employees:employee-create" %}" class="btn btn-success btn-sm">New Employee</a>{% endif %}
-{% endblock %}
+{% load workify_tags %}
 
 {% block main %}
     {% if employees.count > 0%}
