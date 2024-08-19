@@ -1,11 +1,20 @@
 {% load static %}
-{% comment %}{% load sidebar_link %}{% endcomment %}
+{% load workify_tags %}
 
     <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
-          {% comment %}{% sidebar_link 'Employees' 'employees.view_employee' 'employees:employee-list' 'users' %}
-          {% sidebar_link 'Projects' 'projects.view_project' 'projects:project-list' 'trello' %}
+
+          <li class="nav-item">
+            <a class="nav-link " aria-current="page" href="#">
+              <span data-feather="home"></span>
+              Dashboard
+            </a>
+          </li>
+
+          {% render_sidebar_link 'Employees' 'employees.view_employee' 'employees:employee-list' 'users' %}
+          {% render_sidebar_link 'Clients' 'clients.view_client' 'clients:client-list' 'briefcase' %}
+           {% comment %}{% sidebar_link 'Projects' 'projects.view_project' 'projects:project-list' 'trello' %}
           {% sidebar_link 'Time reports' 'time_reports.view_time_report' 'time_reports:time-report-list' 'clipboard' %}
           {% sidebar_link 'Approvals' 'project.view_project' 'approvals:approval-list' 'chevrons-right' %}
 
@@ -16,34 +25,27 @@
           {% sidebar_link 'Projects' 'projects.view_project' 'projects:list' 'trello' %} {% endcomment %}
 
           <li class="nav-item">
-            <a class="nav-link " aria-current="page" href="#">
-              <span data-feather="home"></span>
-              Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="#">
               <span data-feather="trello"></span>
-              Projects
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" >
-              <span data-feather="users"></span>
-              Clients
-
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <span data-feather="bar-chart-2"></span>
-              Reports
+              [todo] Projects
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">
               <span data-feather="clipboard"></span>
-              Time reports
+              [todo] Time reports
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="chevrons-right"></span>
+              [todo] Approvals
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span data-feather="dollar-sign"></span>
+              [todo] Budgets
             </a>
           </li>
         </ul>

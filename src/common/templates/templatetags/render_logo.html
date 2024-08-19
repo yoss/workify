@@ -1,0 +1,7 @@
+{% load static %}
+
+{% if client.logo %} 
+    <img src="{{client.logo.url}}" alt="" width="32" height="32" class="rounded-3" style="margin-right: 8px"> 
+{% else %}
+    <img src="{% static 'common/img/company.png' %}" alt="" width="32" height="32" class="rounded-3" style="background: #888888; margin-right: 8px"> 
+{% endif %}     

@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseBadRequest
@@ -6,11 +7,12 @@ from django.utils.html import format_html
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 
-from employees.models import Employee, EmployeeDocument
+from employees.models import Employee, EmployeeDocument, EmployeeRate
 from employees.permissions import employee_detail_permission
-from employees.forms import EmployeeCreateForm, EmployeeUpdateForm, EmployeeDocumentForm
+from employees.forms import EmployeeCreateForm, EmployeeUpdateForm, EmployeeDocumentForm, EmployeeRateForm
 from employees.mixins import EmployeeStatusMixin
 from common.mixins import BreadcrumbsAndButtonsMixin
+from common.helpers import Breadcrumbs, Button
 
 class EmployeeList(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, generic.ListView):
     permission_required = 'employees.can_view_employee_list'
@@ -18,17 +20,17 @@ class EmployeeList(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, generic.
     context_object_name = 'employees'
 
     def get_breadcrumbs(self):
-        return [{'text': 'Employees', 'badge': None, 'url': None, 'active': True}]
+        return Breadcrumbs.create('Employees', active=True)
     
     def get_top_buttons(self):   
         buttons =  []
         listing_all = self.kwargs.get('all', False)
         if not listing_all and self.request.user.has_perm('employees.can_view_archived_employees'):
-            buttons.append ({'type': 'link', 'url': Employee.list_all_employees_url(), 'css_class': 'outline-primary', 'text': 'Show all'})
+            buttons.append(Button('Show all', Employee.list_all_employees_url(), css_class= 'outline-primary', icon=None))
         if listing_all:
-            buttons.append ({'type': 'link', 'url': Employee.list_active_employees_url(), 'css_class': 'outline-primary', 'text': 'Only active'})   
+            buttons.append(Button('Only active', Employee.list_active_employees_url(), css_class= 'outline-primary', icon=None))
         if self.request.user.has_perm('employees.add_employee'):
-            buttons.append ({'type': 'link', 'url': Employee.get_create_url(), 'css_class': 'success', 'text': 'Add employee', 'icon': 'plus'})
+            buttons.append(Button('Add employee', Employee.get_create_url(), css_class= 'success', icon='plus'))
         return buttons
 
     def get_queryset(self):
@@ -44,19 +46,46 @@ class EmployeeDetail(BreadcrumbsAndButtonsMixin, UserPassesTestMixin, generic.De
 
     def get_breadcrumbs(self):
         url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
-        badge = 'Archived' if self.object.is_inactive else None
+        breadcrumbs = Breadcrumbs.create('Employees', url=url)
 
-        return [{'text': 'Employees', 'badge': None, 'url': url, 'active': False},
-                {'text': self.object, 'badge': badge, 'url': None, 'active': True}]
+        badge = 'Archived' if self.object.is_inactive else None
+        breadcrumbs.add(self.object, url=None, active=True, badge=badge)
+
+        return breadcrumbs
     
     def get_top_buttons(self):
         buttons = []
         employee = self.object
         if  employee.is_active and self.request.user.has_perm('employees.change_employee'):
-            buttons.append({'type': 'link', 'url': employee.get_update_url(), 'css_class': 'success', 'text': 'Edit', 'icon': 'edit'})
+            buttons.append(Button('Edit', employee.get_update_url(), css_class='success', icon='edit'))
         if employee.is_inactive and self.request.user.has_perm('employees.delete_employee'):
-            buttons.append({'type': 'popup', 'url': employee.get_activate_url(), 'css_class': 'success', 'text': 'Activate', 'icon': 'zap'})
+            buttons.append(Button('Activate', employee.get_activate_url(), css_class='success', icon='zap', type='popup'))
         return buttons
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_can_change_employee'] = self.request.user.has_perm('employees.change_employee')
+        context['new_document_button'] = Button('Add document', self.object.get_new_document_url(), css_class='success', icon='plus')
+        documents = context['employee'].employeedocument_set.all().order_by('sign_date')
+        # empl = Employee()
+        # empl.rate_set.all()
+        for document in documents:
+            document.buttons = [
+                Button('Open', document.document_file.url, css_class='primary', icon='external-link', target='_blank'),
+                Button('Edit', document.get_update_url(), css_class='success', icon='edit'),
+                Button('Delete', document.get_delete_url(), css_class='danger', icon='trash-2', type='popup')
+            ]
+        context['documents'] = documents
+        context['new_rate_button'] = Button('Add rate', self.object.get_new_rate_url(), css_class='success', icon='plus')
+        rates = context['employee'].employeerate_set.all().order_by('-valid_from')
+        for rate in rates:
+            rate.buttons = [
+                Button('Edit', rate.get_update_url(), css_class='success', icon='edit'),
+                Button('Delete', rate.get_delete_url(), css_class='danger', icon='trash-2', type='popup')
+            ]
+        context['rates'] = rates
+
+        return context
 
 class EmployeeCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.add_employee'
@@ -65,15 +94,13 @@ class EmployeeCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, Succes
 
     def get_breadcrumbs(self):
         url = Employee.list_active_employees_url()  if self.request.user.has_perm('employees.can_view_employee_list') else None
-        return [
-            {'text': 'Employees', 'badge': None, 'url': url, 'active': False},
-            {'text': 'Add employee', 'badge': None, 'url': None, 'active': True}
-        ]
+        breadcrumbs = Breadcrumbs.create('Employees', url=url)
+        breadcrumbs.add('Add employee', url=None, active=True)
+        return breadcrumbs
     
     def get_top_buttons(self):
         if self.request.user.has_perm('employees.can_view_employee_list'):
-            url = Employee.list_active_employees_url()  
-            return [{'type': 'link', 'url': url, 'css_class': 'primary', 'text': 'Back', 'icon': 'arrow-left'}]
+            return [Button('Back', Employee.list_active_employees_url()  , css_class='primary', icon='arrow-left')]
         return []
 
     def get_initial(self):
@@ -102,20 +129,19 @@ class EmployeeUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin,  Emplo
         return super().setup(request, *args, **kwargs)
 
     def get_breadcrumbs(self):
-        employees_url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
+        url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
+        breadcrumbs = Breadcrumbs.create('Employees', url=url)
+        
         badge = 'Archived' if self.employee.is_inactive else None
-        employee_url = self.employee.get_absolute_url()
-
-        return [
-            {'text': 'Employees', 'badge': None, 'url': employees_url, 'active': False},
-            {'text': self.employee, 'badge': badge, 'url': employee_url, 'active': False},
-            {'text': 'Edit', 'badge': None, 'url': None, 'active': True}
-        ]
+        breadcrumbs.add(self.employee, url=self.employee.get_absolute_url(), active=False, badge=badge)
+        breadcrumbs.add('Edit', url=None, active=True)
+        return breadcrumbs
+    
     def get_top_buttons(self):
         buttons =[]
-        buttons.append({'type': 'link', 'url': self.employee.get_absolute_url(), 'css_class': 'primary', 'text': 'Back', 'icon': 'arrow-left'})
+        buttons.append(Button('Back', self.employee.get_absolute_url(), css_class='primary', icon='arrow-left'))
         if self.employee.is_active and self.request.user.has_perm('employees.delete_employee'):
-            buttons.append({'type': 'popup', 'url': self.employee.get_deactivate_url(), 'css_class': 'danger', 'text': 'Deactivate', 'icon': 'zap-off'})
+            buttons.append(Button('Deactivate', self.employee.get_deactivate_url(), css_class='danger', icon='zap-off', type='popup'))
         return buttons
 
     def form_valid(self, form):
@@ -178,31 +204,28 @@ class EmployeeDocumentCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin
     
     def get_breadcrumbs(self):
         employees_url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
-        badge = 'Archived' if self.employee.is_inactive else None
-        employee_url = self.employee.get_absolute_url()
+        breadcrumbs = Breadcrumbs.create('Employees', url=employees_url)
 
-        return [{'text': 'Employees', 'badge': None, 'url': employees_url, 'active': False},
-                {'text': self.employee, 'badge': badge, 'url': employee_url, 'active': False},
-                {'text': 'Add document', 'badge': None, 'url': None, 'active': True}
-        ]
+        badge = 'Archived' if self.employee.is_inactive else None
+        breadcrumbs.add(self.employee, url=self.employee.get_absolute_url(), active=False, badge=badge)
+        breadcrumbs.add('Add document', url=None, active=True)
+        return breadcrumbs
 
     def get_top_buttons(self):
-        return [{'type': 'link', 'url': self.employee.get_absolute_url(), 'css_class': 'primary', 'text': 'Back', 'icon': 'arrow-left'}]
+        return [Button('Back', self.employee.get_absolute_url(), css_class='primary', icon='arrow-left')]
     
     def get_initial(self, **kwargs):
         return { 'employee': self.employee}
 
     def form_valid(self, form):
-        cd = form.cleaned_data
-        self.document_name = cd['name']
-        self.employee.add_document(cd['name'], cd['sign_date'], cd['document_file'], cd['document_type'], cd['reference_document'])
+        form.save()
         return super().form_valid(form)
 
     def get_success_url(self):
         return self.employee.get_absolute_url()
     
     def get_success_message(self, cleaned_data):
-        return format_html("Document <strong>{}</strong> has been added to {}", self.document_name, self.employee)
+        return format_html("Document <strong>{}</strong> has been added to {}", cleaned_data['name'], self.employee)
     
 class EmployeeDocumentDelete(PermissionRequiredMixin, generic.View):
     permission_required = 'employees.change_employee'
@@ -240,41 +263,149 @@ class EmployeeDocumentUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin
     
     def get_breadcrumbs(self):
         employees_url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
-        badge = 'Archived' if not self.employee.user.is_active else None
-        employee_url = self.employee.get_absolute_url()
+        breadcrumbs = Breadcrumbs.create('Employees', url=employees_url)
 
-        return [{'text': 'Employees', 'badge': None, 'url': employees_url, 'active': False},
-                {'text': self.employee, 'badge': badge, 'url': employee_url, 'active': False},
-                {'text': self.document.name, 'badge': None, 'url': None, 'active': False},
-                {'text': 'Edit', 'badge': None, 'url': None, 'active': True}
-        ]
+        badge = 'Archived' if self.employee.is_inactive else None
+        breadcrumbs.add(self.employee, url=self.employee.get_absolute_url(), active=False, badge=badge)
+        breadcrumbs.add(self.document.name, url=None, active=False)
+        breadcrumbs.add('Edit', url=None, active=True)
+
+        return breadcrumbs
 
     def get_top_buttons(self):
         return [
-            {'type': 'link', 'url': self.employee.get_absolute_url(), 'css_class': 'primary', 'text': 'Back', 'icon': 'arrow-left'},
-            {'type': 'popup', 'url': self.document.get_delete_url(), 'css_class': 'danger', 'text': 'Delete', 'icon': 'trash-2'}
+            Button('Back', self.employee.get_absolute_url(), css_class='primary', icon='arrow-left'),
+            Button('Delete', self.document.get_delete_url(), css_class='danger', icon='trash-2', type='popup')
             ]
 
     def get_initial(self, **kwargs):
-        return { 'employee': self.document.employee, 
-                'name': self.document.name, 
-                'sign_date': self.document.sign_date, 
-                'document_file': self.document.document_file, 
-                'document_type': self.document.document_type, 
-                'reference_document': self.document.reference_document
-                }
+        return { 'employee': self.document.employee}
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.document  
+        return kwargs
+    
 
     def form_valid(self, form):
-        self.document.update(form.cleaned_data)
+        self.document = form.save()
         return super().form_valid(form)
 
     def get_success_url(self):
         return self.employee.get_absolute_url()
     
     def get_success_message(self, cleaned_data):
-        return format_html("Document <strong>{}</strong> has been updated", cleaned_data['name'])
+        return format_html("Document <strong>{}</strong> has been updated", self.document.name)
     
     def get(self, request, *args, **kwargs):
         if self.document.employee.slug != kwargs.pop('slug', None):
             raise HttpResponseBadRequest('Document does not belong to employee')
         return super().get(request, *args, **kwargs)
+    
+class EmployeeRateCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
+    permission_required = 'employees.change_employee'
+    form_class = EmployeeRateForm
+    template_name = 'employees/employee_rate_form.html'
+    employee = Employee()
+    rate = None
+
+    def setup(self, request, *args, **kwargs):
+        self.employee = get_object_or_404(Employee, slug=kwargs['slug'])
+        return super().setup(request, *args, **kwargs)
+    
+    def get_breadcrumbs(self):
+        employees_url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
+        breadcrumbs = Breadcrumbs.create('Employees', url=employees_url)
+
+        badge = 'Archived' if self.employee.is_inactive else None
+        breadcrumbs.add(self.employee, url=self.employee.get_absolute_url(), active=False, badge=badge)
+        breadcrumbs.add('Add rate', url=None, active=True)
+
+        return breadcrumbs
+
+    def get_top_buttons(self):
+        return [Button('Back', self.employee.get_absolute_url(), css_class='primary', icon='arrow-left')]
+    
+    def get_initial(self, **kwargs):
+        return { 'employee': self.employee}
+
+    def form_valid(self, form):
+        self.rate = form.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.employee.get_absolute_url()
+    
+    def get_success_message(self, cleaned_data):
+        return format_html("Rate <strong>{}</strong> has been added to {}", self.rate, self.employee)
+    
+class EmployeeRateUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
+    permission_required = 'employees.change_employee'
+    form_class = EmployeeRateForm
+    template_name = 'employees/employee_document_form.html'
+    employee = Employee()
+    rate = EmployeeRate()
+
+    def setup(self, request, *args, **kwargs):
+        self.employee = get_object_or_404(Employee, slug=kwargs['slug'])
+        self.rate = get_object_or_404(EmployeeRate, pk=kwargs['pk'])
+        return super().setup(request, *args, **kwargs)
+    
+    def get_breadcrumbs(self):
+        employees_url = Employee.list_active_employees_url() if self.request.user.has_perm('employees.can_view_employee_list') else None
+        breadcrumbs = Breadcrumbs.create('Employees', url=employees_url)
+
+        badge = 'Archived' if self.employee.is_inactive else None
+        breadcrumbs.add(self.employee, url=self.employee.get_absolute_url(), active=False, badge=badge)
+        breadcrumbs.add(self.rate, url=None, active=False)
+        breadcrumbs.add('Edit', url=None, active=True)
+
+        return breadcrumbs
+
+    def get_top_buttons(self):
+        return [
+            Button('Back', self.employee.get_absolute_url(), css_class='primary', icon='arrow-left'),
+            Button('Delete', self.rate.get_delete_url(), css_class='danger', icon='trash-2', type='popup')
+            ]
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.rate  
+        return kwargs
+    
+    def form_valid(self, form):
+        self.rate = form.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.employee.get_absolute_url()
+    
+    def get_success_message(self, cleaned_data):
+        return format_html("Rate <strong>{}</strong> has been updated", self.rate)
+    
+    def get(self, request, *args, **kwargs):
+        if self.rate.employee.slug != kwargs.pop('slug', None):
+            raise HttpResponseBadRequest('Document does not belong to employee')
+        return super().get(request, *args, **kwargs)
+
+class EmployeeRateDelete(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
+    permission_required = 'employees.change_employee'
+    http_method_names = ['post', 'get']
+
+    def setup(self, request, *args, **kwargs):
+        self.rate = get_object_or_404(EmployeeRate, pk=kwargs['pk'])
+        return super().setup(request, *args, **kwargs)
+    
+    def get(self, request, *args, **kwargs):
+        if self.rate.employee.slug != kwargs.pop('slug', None):
+            return render(request, 'error_popup.html', {'error': 'Document does not belong to employee'})
+        return render(request, 'employees/employee_rate_delete_popup.html', {'rate': self.rate})
+
+    def post(self, request, *args, **kwargs):
+        if self.rate.employee.slug != kwargs.pop('slug', None):
+            messages.error(request, 'Rate does not belong to employee')
+            return redirect(self.rate.employee.get_absolute_url())
+
+        self.rate.delete()
+        messages.success(request, 'Rate deleted')
+        return redirect(self.rate.employee.get_absolute_url())

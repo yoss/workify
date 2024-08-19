@@ -19,19 +19,12 @@
         {% block topbar %}
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb h2">
-              {% get_breadcrumbs breadcrumbs %}
+              {% render_breadcrumbs breadcrumbs %}
             </ol>
           </nav>       
             
           <div class="btn-toolbar mb-md-0">
-            {% for bt in top_buttons %}
-              {% if bt.type == "link" %}
-                {%  link_button bt.url bt.css_class bt.text bt.icon bt.target %}
-              {% endif %}
-              {% if bt.type == "popup" %}
-                {%  popup_button bt.url bt.css_class bt.text bt.icon %}
-              {% endif %}
-            {% endfor %}
+            {% render_button top_buttons %}
           </div> 
         {% endblock %}
       </div>

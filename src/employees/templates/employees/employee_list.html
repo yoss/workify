@@ -20,10 +20,10 @@
             <tr scope="row">
                 <td>{{forloop.counter}}</td>
                 {% if employee == request.user.employee or perms.employees.view_all_employee_details %}
-                <td><a href="{{ employee.get_absolute_url }}" style="text-decoration:none">{% show_avatar employee %}</a></td>
+                <td><a href="{{ employee.get_absolute_url }}" style="text-decoration:none">{% render_avatar employee %}</a></td>
                 <td><a href="{{ employee.get_absolute_url }}">{{ employee }}</a> </td>
                 {% else %}
-                <td>{% show_avatar employee %}</td>
+                <td>{% render_avatar employee %}</td>
                 <td>{{ employee }}</td>
                 {% endif %}
 

@@ -1,0 +1,50 @@
+{% for button in buttons %}
+    {% if button.type == 'link' %}
+        {% if button.icon %}
+            <div class="btn-group me-2" role="group" >    
+                <a href="{{ button.url }}" class="btn btn-{{ button.icon_class }} {{ button.size }}" target="{{ button.target }}"><span data-feather="{{ button.icon }}"></span></a>
+                <a href="{{ button.url }}" class="btn btn-{{ button.text_class }} {{ button.size }}" target="{{ button.target }}">{{ button.text }}</a>
+            </div>
+        {% else %}
+            <a href="{{ button.url }}" class="btn btn-{{ button.text_class }} {{ button.size }} me-2" target="{{ button.target }}">{{ button.text }}</a>
+        {% endif %}
+    {% endif %}
+    {% if button.type == 'popup' %}
+        {% with hx='hx-target="#PopupModalContent" hx-trigger="click" data-bs-toggle="modal" data-bs-target="#PopupModal"' %} 
+            {% if button.icon %}
+                <div class="btn-group me-2" role="group" >    
+                    <button type="button" hx-get="{{ button.url }}" {{ hx }} class="btn btn-{{ button.icon_class }} {{ button.size }}"><span data-feather="{{button.icon}}"></button>
+                    <button type="button" hx-get="{{ button.url }}" {{ hx }} class="btn btn-{{ button.text_class }} {{ button.size }}">{{ button.text}}</button>
+                </div>
+            {% else %}
+                <button type="button" hx-get="{{ button.url }}" {{ hx }} class="btn btn-{{ button.text_class }} {{ button.size }} me-2">{{ button.text}}</button>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+    {% if button.type == 'submit' %}
+    <form method="POST" action="{{ button.url }}">
+        {% csrf_token %}
+        {% if button.icon %}
+            <div class="btn-group me-2" role="group" >    
+                <button type="submit" class="btn btn-{{ button.icon_class }} {{ button.size }}"><span data-feather="{{button.icon}}"></button>
+                <button type="submit" class="btn btn-{{ button.text_class }} {{ button.size }}">{{ button.text}}</button>
+            </div>
+            <script>feather.replace()</script>
+        {% else %}
+            <button type="submit" class="btn btn-{{ button.text_class }} {{ button.size }} me-2">{{ button.text}}</a>
+        {% endif %}
+    </form>
+    {% endif %}
+    {% if button.type == 'popup cancel' %}
+        {% if button.icon %}
+        <div class="btn-group me-2" role="group" >    
+            <button type="button" class="btn btn-{{ button.icon_class }} {{ button.size }}" data-bs-dismiss="modal"><span data-feather="{{button.icon}}"></button>
+            <button type="button" class="btn btn-{{ button.text_class }} {{ button.size }}">{{ button.text}}</button>
+        </div>
+        <script>feather.replace()</script>
+            {% else %}
+        <button type="button" class="btn btn-{{ button.text_class }} {{ button.size }} me-2" data-bs-dismiss="modal">{{ button.text}}</button>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+

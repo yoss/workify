@@ -1,0 +1,109 @@
+{% extends "content.html" %}
+{% load static %}
+{% load workify_tags %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg">
+            {% if client.logo %}
+            <img src="{{ client.logo.url }}" alt="" class="img-thumbnail" style="max-width: 256px">
+            {% endif %}
+        </div>
+        <div class="col-lg">
+            <div class="row">
+                <div class="col">Active opportunities:</div>
+                <div class="col"><a href="#opportunities_section" >[3]</a></div>
+            </div>
+            <div class="row">
+                <div class="col">Active contracts:</div>
+                <div class="col"><a href="#opportunities_section" >[3]</a></div>
+            </div>
+            <div class="row">
+                <div class="col">Invoices:</div>
+                <div class="col"><a href="#opportunities_section" >[13]</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="opportunities_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        Opportunities [active]
+      </ol>
+    </nav>          
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <button>all</button>
+      <button>add</button>
+    </div>
+</div>
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Created on</th>
+            <th scope="col" >Owner</th>      
+            <th scope="col" >Comment</th>
+            <th scope="col" >Value</th>
+            <th scope="col" >Documents</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        Contracts [active]
+      </ol>
+    </nav>          
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <button>all</button>
+      <button>add</button>
+    </div>
+</div>
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Created on</th>
+            <th scope="col" >Owner</th>      
+            <th scope="col" >Comment</th>
+            <th scope="col" >Value</th>
+            <th scope="col" >Documents</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="invoices_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        Invoices
+      </ol>
+    </nav>          
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <button>add</button>
+    </div>
+</div>
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Created on</th>
+            <th scope="col" >Owner</th>      
+            <th scope="col" >Comment</th>
+            <th scope="col" >Value</th>
+            <th scope="col" >Documents</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+{% endblock %}

@@ -10,6 +10,7 @@ from django.urls import reverse, reverse_lazy
 from django.core.files.base import ContentFile
 from PIL import Image
 from utils.unique_slugify import unique_slugify
+from common.models import Currencies
 
 class EmployeeGroups(models.TextChoices):
     HR = 'human_resources', 'Human Resources'
@@ -104,24 +105,13 @@ class Employee(models.Model):
         self.user.save()
         return
 
-    def redirect_if_inactive(self, request, callback):
-        if not self.user.is_active:
-            messages.error(request, format_html("Employee <strong>{}</strong> is inactive.", self))
-            return redirect(self.get_absolute_url())
-        return callback
-    
-
-    def add_document(self, name, sign_date, document_file, document_type, reference_document=None):
-        document = EmployeeDocument(employee=self, name=name, sign_date=sign_date, document_file=document_file, document_type=document_type, reference_document=reference_document)
-        document.save()
-        return document
-
     def get_absolute_url(self): return reverse('employees:employee-detail', kwargs={'slug': self.slug})
     def get_update_url(self):   return reverse('employees:employee-update', kwargs={'slug': self.slug})
     def get_deactivate_url(self): return reverse('employees:employee-deactivate', kwargs={'slug': self.slug})
     def get_activate_url(self): return reverse('employees:employee-activate', kwargs={'slug': self.slug})
 
     def get_new_document_url(self): return reverse('employees:employee-document-create', kwargs={'slug': self.slug})
+    def get_new_rate_url(self): return reverse('employees:employee-rate-create', kwargs={'slug': self.slug})
 
 class EmployeeDocumentTypes(models.TextChoices):
     CONTRACT = 'contract', 'Contract'
@@ -136,21 +126,37 @@ class EmployeeDocument(models.Model):
     document_file = models.FileField(upload_to='EmployeeDocuments/')
     document_type = models.CharField(max_length=20, choices=EmployeeDocumentTypes.choices)
     reference_document = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.sign_date.strftime('%d.%m.%Y')}" 
 
-    def update(self, cleaned_data):
-        self.name = cleaned_data['name']
-        self.sign_date = cleaned_data['sign_date']
-        self.document_file = cleaned_data['document_file']
-        self.document_type = cleaned_data['document_type']
-        self.reference_document = cleaned_data['reference_document']
-        self.save()
-
-
     def get_update_url(self):   return reverse('employees:employee-document-update', kwargs={'slug': self.employee.slug, 'pk': self.pk})
     def get_delete_url(self):   return reverse('employees:employee-document-delete', kwargs={'slug': self.employee.slug, 'pk': self.pk})
-    # def get_absolute_url(self): return reverse('employees:contract-detail', kwargs={'pk': self.pk})
-    # def get_update_url(self):   return reverse('employees:contract-update', kwargs={'pk': self.pk})
-    # def get_delete_url(self):   return reverse('employees:contract-delete', kwargs={'pk': self.pk})
+
+class EmployeeRateTypes(models.TextChoices):
+    B2B = 'hourly', 'Hourly (B2B)'
+    PERMANENT = 'monthly', 'Monthly (Employment Contract)'
+
+class EmployeeRate(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    rate_type = models.CharField(max_length=20, choices=EmployeeRateTypes.choices)
+    chargable_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    basic_rate = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, choices=Currencies.choices)
+    valid_from = models.DateField()
+    valid_to = models.DateField(blank=True, null=True)
+    reference_document = models.ForeignKey(EmployeeDocument, on_delete=models.CASCADE, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        if self.chargable_rate == self.basic_rate:
+            rate = f"{self.chargable_rate} {self.currency}"   
+        if self.chargable_rate != self.basic_rate:
+            rate = f"{self.chargable_rate} | {self.basic_rate} {self.currency}"
+        if self.valid_to and self.valid_from.strftime('%b %Y') == self.valid_to.strftime('%b %Y'):
+            return f"{rate} - {self.valid_from.strftime('%b %Y')}"
+        return f"{rate} - {self.valid_from.strftime('%b %Y')} → {self.valid_to.strftime('%b %Y') if self.valid_to else 'current'}"
+
+    def get_update_url(self):   return reverse('employees:employee-rate-update', kwargs={'slug': self.employee.slug, 'pk': self.pk})
+    def get_delete_url(self):   return reverse('employees:employee-rate-delete', kwargs={'slug': self.employee.slug, 'pk': self.pk})
