@@ -5,10 +5,10 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, V
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib import messages  
 from django.utils.html import format_html
-
-from common.helpers import Breadcrumbs, Button
-from common.mixins import BreadcrumbsAndButtonsMixin
 from django.http import Http404
+
+from common.helpers import Breadcrumbs, Button, ObjectToggle
+from common.mixins import BreadcrumbsAndButtonsMixin
 
 from .forms import ClientForm
 from .models import Client
@@ -105,61 +105,48 @@ class ClientUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, UpdateVi
         messages.success(self.request, format_html("Client <strong>{}</strong> has been updated", self.object))
         return redirect(self.object.get_absolute_url())
 
-class ClientDeactivate(PermissionRequiredMixin, DetailView):
-    model = Client
-    permission_required = 'clients.delete_client'
-    http_method_names = ['get', 'post']
-    object = Client()
+class ClientDeactivate(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = Client
+        self.permission_required = 'clients.delete_client'
+        self.object = Client()
 
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().dispatch(request, *args, **kwargs)
-    
     def get(self, request, *args, **kwargs):
-        if self.object is None:
-            return render(request, 'error_popup.html')
-        popup = {}
-        popup['title'] = f"Deactivate {self.object}"
-        popup['body'] = format_html("<p>Are you sure you want to deactivate <strong>{}</strong>?</p>", self.object)
-        popup['buttons'] = [
-            Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
-            Button('Deactivate', self.object.get_deactivate_url(), css_class='danger', type='submit', icon=None,  size=None)
-        ]
-        return render(request, 'popup.html', {'popup': popup})
-
+        self.popup_dict = {
+            'title': f"Deactivate {self.object}",
+            'body': format_html("<p>Are you sure you want to deactivate <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Deactivate', self.object.get_deactivate_url(), css_class='danger', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
+    
     def post(self, request, *args, **kwargs):
-        if self.object is None:
-            raise Http404
-        self.object.deactivate()
-        messages.error(request, format_html("Client <strong>{}</strong> has been deactivated", self.object))
-        return redirect(Client.get_list_url())
-    
-    
-class ClientActivate(PermissionRequiredMixin, DetailView):
-    model = Client
-    permission_required = 'clients.delete_client'
-    http_method_names = ['get', 'post']
-    object = Client()
+        self.callback = self.object.deactivate
+        self.success_message = "Client <strong>{}</strong> has been deactivated".format(self.object)
+        self.success_url = Client.get_list_url()
+        return super().post(request, *args, **kwargs)
+        
+class ClientActivate(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = Client
+        self.permission_required = 'clients.delete_client'
+        self.object = Client()
 
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super().dispatch(request, *args, **kwargs)
-    
     def get(self, request, *args, **kwargs):
-        if self.object is None:
-            return render(request, 'error_popup.html')
-        popup = {}
-        popup['title'] = f"Activate {self.object}"
-        popup['body'] = format_html("<p>Are you sure you want to activate <strong>{}</strong>?</p>", self.object)
-        popup['buttons'] = [
-            Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
-            Button('Activate', self.object.get_activate_url(), css_class='success', type='submit', icon=None,  size=None)
-        ]
-        return render(request, 'popup.html', {'popup': popup})
-
+        self.popup_dict = {
+            'title': f"Activate {self.object}",
+            'body': format_html("<p>Are you sure you want to activate <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Activate', self.object.get_activate_url(), css_class='success', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
+    
     def post(self, request, *args, **kwargs):
-        if self.object is None:
-            raise Http404
-        self.object.activate()
-        messages.success(request, format_html("Client <strong>{}</strong> has been activated", self.object))
-        return redirect(self.object.get_absolute_url())
+        self.callback = self.object.activate
+        self.success_message = "Client <strong>{}</strong> has been activated".format(self.object)
+        self.success_url = self.object.get_absolute_url()
+        return super().post(request, *args, **kwargs)

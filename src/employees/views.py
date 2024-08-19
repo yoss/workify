@@ -12,7 +12,7 @@ from employees.permissions import employee_detail_permission
 from employees.forms import EmployeeCreateForm, EmployeeUpdateForm, EmployeeDocumentForm, EmployeeRateForm
 from employees.mixins import EmployeeStatusMixin
 from common.mixins import BreadcrumbsAndButtonsMixin
-from common.helpers import Breadcrumbs, Button
+from common.helpers import Breadcrumbs, Button, ObjectToggle
 
 class EmployeeList(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, generic.ListView):
     permission_required = 'employees.can_view_employee_list'
@@ -90,7 +90,8 @@ class EmployeeDetail(BreadcrumbsAndButtonsMixin, UserPassesTestMixin, generic.De
 class EmployeeCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.add_employee'
     form_class = EmployeeCreateForm
-    template_name = 'employees/employee_create_form.html'
+    # template_name = 'employees/employee_create_form.html'
+    template_name = 'form.html'
 
     def get_breadcrumbs(self):
         url = Employee.list_active_employees_url()  if self.request.user.has_perm('employees.can_view_employee_list') else None
@@ -121,7 +122,8 @@ class EmployeeCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, Succes
 class EmployeeUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin,  EmployeeStatusMixin,SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.change_employee'
     form_class = EmployeeUpdateForm
-    template_name = 'employees/employee_update_form.html'
+    template_name = 'form.html'
+    # template_name = 'employees/employee_update_form.html'
     employee = Employee()
 
     def setup(self, request, *args, **kwargs):
@@ -162,39 +164,57 @@ class EmployeeUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin,  Emplo
     def get_success_url(self):
         return self.employee.get_absolute_url()
 
-class EmployeeToogle(PermissionRequiredMixin, generic.View):
-    permission_required = 'employees.delete_employee'
-    http_method_names = ['post', 'get']
+class EmployeeActivate(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = Employee
+        self.permission_required = 'employees.delete_employee'
+        self.object = Employee()
 
-    def setup(self, request, *args, **kwargs):
-        self.employee = get_object_or_404(Employee, slug=kwargs['slug'])
-        return super().setup(request, *args, **kwargs)
-
-    def http_method_not_allowed(self, request, *args, **kwargs):
-        return redirect(self.employee.get_absolute_url())
-
-class EmployeeDeactivate(EmployeeToogle):
     def get(self, request, *args, **kwargs):
-        return render(request, 'employees/employee_deactivate_popup.html', {'employee': self.employee})
-
+        self.popup_dict = {
+            'title': f"Activate {self.object}",
+            'body': format_html("<p>Are you sure you want to activate <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Activate', self.object.get_activate_url(), css_class='success', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
+    
     def post(self, request, *args, **kwargs):
-        self.employee.deactivate()
-        messages.error(request, format_html("Employee <strong>{}</strong> has been deactivated", self.employee))
-        return redirect(Employee.list_active_employees_url())
-        
-class EmployeeActivate(EmployeeToogle):
+        self.callback = self.object.activate
+        self.success_message = "Employee <strong>{}</strong> has been activated".format(self.object)
+        self.success_url = self.object.get_absolute_url()
+        return super().post(request, *args, **kwargs)
+
+class EmployeeDeactivate(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = Employee
+        self.permission_required = 'employees.delete_employee'
+        self.object = Employee()
+
     def get(self, request, *args, **kwargs):
-        return render(request, 'employees/employee_activate_popup.html', {'employee': self.employee})
-
+        self.popup_dict = {
+            'title': f"Deactivate {self.object}",
+            'body': format_html("<p>Are you sure you want to deactivate <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Deactivate', self.object.get_deactivate_url(), css_class='danger', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
+    
     def post(self, request, *args, **kwargs):
-        self.employee.activate()
-        messages.success(request, format_html("Employee <strong>{}</strong> has been activated", self.employee))
-        return redirect(self.employee.get_absolute_url())
+        self.callback = self.object.deactivate
+        self.success_message = "Employee <strong>{}</strong> has been deactivated".format(self.object)
+        self.success_url = Employee.list_active_employees_url()
+        return super().post(request, *args, **kwargs)
     
 class EmployeeDocumentCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.change_employee'
     form_class = EmployeeDocumentForm
-    template_name = 'employees/employee_document_form.html'
+    template_name = 'form.html'
+    # template_name = 'employees/employee_document_form.html'
     employee = Employee()
     document_name = None
 
@@ -227,32 +247,11 @@ class EmployeeDocumentCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin
     def get_success_message(self, cleaned_data):
         return format_html("Document <strong>{}</strong> has been added to {}", cleaned_data['name'], self.employee)
     
-class EmployeeDocumentDelete(PermissionRequiredMixin, generic.View):
-    permission_required = 'employees.change_employee'
-    http_method_names = ['post', 'get']
-
-    def setup(self, request, *args, **kwargs):
-        self.document = get_object_or_404(EmployeeDocument, pk=kwargs['pk'])
-        return super().setup(request, *args, **kwargs)
-    
-    def get(self, request, *args, **kwargs):
-        if self.document.employee.slug != kwargs.pop('slug', None):
-            return render(request, 'error_popup.html', {'error': 'Document does not belong to employee'})
-        return render(request, 'employees/employee_document_delete_popup.html', {'document': self.document})
-
-    def post(self, request, *args, **kwargs):
-        if self.document.employee.slug != kwargs.pop('slug', None):
-            messages.error(request, 'Document does not belong to employee')
-            return redirect(self.document.employee.get_absolute_url())
-
-        self.document.delete()
-        messages.success(request, 'Document deleted')
-        return redirect(self.document.employee.get_absolute_url())
-    
 class EmployeeDocumentUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.change_employee'
     form_class = EmployeeDocumentForm
-    template_name = 'employees/employee_document_form.html'
+    template_name = 'form.html'
+    # template_name = 'employees/employee_document_form.html'
     employee = Employee()
     document = EmployeeDocument()
 
@@ -301,11 +300,35 @@ class EmployeeDocumentUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin
         if self.document.employee.slug != kwargs.pop('slug', None):
             raise HttpResponseBadRequest('Document does not belong to employee')
         return super().get(request, *args, **kwargs)
-    
+ 
+class EmployeeDocumentDelete(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = EmployeeDocument
+        self.permission_required = 'employees.change_employee'
+        self.object = EmployeeDocument()
+
+    def get(self, request, *args, **kwargs):
+        self.popup_dict = {
+            'title': f"Delete {self.object}",
+            'body': format_html("<p>Are you sure you want to delete <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Delete', self.object.get_delete_url(), css_class='danger', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.callback = self.object.delete
+        self.success_message = "Document <strong>{}</strong> has been deleted".format(self.object)
+        self.success_url = self.object.employee.get_absolute_url()
+        return super().post(request, *args, **kwargs)
+   
 class EmployeeRateCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.change_employee'
     form_class = EmployeeRateForm
-    template_name = 'employees/employee_rate_form.html'
+    template_name = 'form.html'
+    # template_name = 'employees/employee_rate_form.html'
     employee = Employee()
     rate = None
 
@@ -342,7 +365,8 @@ class EmployeeRateCreate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, Su
 class EmployeeRateUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
     permission_required = 'employees.change_employee'
     form_class = EmployeeRateForm
-    template_name = 'employees/employee_document_form.html'
+    template_name = 'form.html'
+    # template_name = 'employees/employee_document_form.html'
     employee = Employee()
     rate = EmployeeRate()
 
@@ -387,25 +411,26 @@ class EmployeeRateUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, Su
         if self.rate.employee.slug != kwargs.pop('slug', None):
             raise HttpResponseBadRequest('Document does not belong to employee')
         return super().get(request, *args, **kwargs)
-
-class EmployeeRateDelete(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, SuccessMessageMixin, generic.FormView):
-    permission_required = 'employees.change_employee'
-    http_method_names = ['post', 'get']
-
-    def setup(self, request, *args, **kwargs):
-        self.rate = get_object_or_404(EmployeeRate, pk=kwargs['pk'])
-        return super().setup(request, *args, **kwargs)
     
+class EmployeeRateDelete(ObjectToggle):
+    def __init__(self, *args, **kwargs):
+        self.model = EmployeeRate
+        self.permission_required = 'employees.change_employee'
+        self.object = EmployeeRate()
+
     def get(self, request, *args, **kwargs):
-        if self.rate.employee.slug != kwargs.pop('slug', None):
-            return render(request, 'error_popup.html', {'error': 'Document does not belong to employee'})
-        return render(request, 'employees/employee_rate_delete_popup.html', {'rate': self.rate})
+        self.popup_dict = {
+            'title': f"Delete {self.object}",
+            'body': format_html("<p>Are you sure you want to delete <strong>{}</strong>?</p>", self.object),
+            'buttons': [
+                Button('Cancel', url=None, css_class='secondary', icon=None, type='popup cancel', size=None),
+                Button('Delete', self.object.get_delete_url(), css_class='danger', type='submit', icon=None,  size=None)
+            ]
+        }
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        if self.rate.employee.slug != kwargs.pop('slug', None):
-            messages.error(request, 'Rate does not belong to employee')
-            return redirect(self.rate.employee.get_absolute_url())
-
-        self.rate.delete()
-        messages.success(request, 'Rate deleted')
-        return redirect(self.rate.employee.get_absolute_url())
+        self.callback = self.object.delete
+        self.success_message = "Rate <strong>{}</strong> has been deleted".format(self.object)
+        self.success_url = self.object.employee.get_absolute_url()
+        return super().post(request, *args, **kwargs)

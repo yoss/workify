@@ -1,3 +1,10 @@
+from django.http import Http404
+from django.shortcuts import redirect, render
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib import messages
+from django.utils.html import format_html
+
 class Breadcrumbs:
     def __init__(self):
         self.items = []
@@ -81,3 +88,32 @@ class Button():
         self.icon = icon
         self.target = target
         self.size = '' if size is None or size == '' else size
+
+class ObjectToggle(PermissionRequiredMixin, DetailView):
+    """
+    A view that toggles an object's status (e.g. active/inactive) based on a popup confirmation.
+    """
+    model = None
+    object = None
+    permission_required = None
+    callback = None
+    popup_dict = None
+    success_message = None
+    success_url = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        if request.method.lower() == 'get' and self.object is None:
+            return render(request, 'error_popup.html', {'error': 'Object not found'})
+        if request.method.lower() == 'post' and self.object is None:
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)   
+    
+    def get(self, request, *args, **kwargs):
+        return render(request, 'popup.html', {'popup': self.popup_dict})
+    
+    def post(self, request, *args, **kwargs):
+        self.callback()
+        messages.success(request, format_html(self.success_message))
+        return redirect(self.success_url)
