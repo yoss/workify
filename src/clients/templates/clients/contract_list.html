@@ -1,0 +1,51 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if contracts.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Number</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Value</th>      
+            <th scope="col" >Start date</th>      
+            <th scope="col" >End date</th>      
+            <th scope="col" >Status calc (paid / expired etc??)</th>      
+            <th scope="col" >Owner</th>      
+            <th scope="col" >Documents</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for contract in contracts %}
+        <tr scope="row">
+            <td>{{forloop.counter}}</td>
+            <td><a href="{{ contract.get_absolute_url }}"> {{ contract.number }}</a></td>
+            <td>{{ contract.name }}</td>
+            {% comment %} <td>{{ contract.value }} {{ contract.currency }} </td> {% endcomment %}
+            <td>{{ contract.start_date }}</td>
+            <td>{{ contract.end_date }}</td>
+            <td>{% if contract.is_active %} <span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-secondary">Archived</span>{% endif %} Open / paid / </td>
+            <td>Maciej Juda</td>
+            <td><a href="#">[3]</a></td>
+            <td class="p-1">
+                <div class="btn-group" role="group">
+
+
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

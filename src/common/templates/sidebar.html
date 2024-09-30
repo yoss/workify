@@ -83,4 +83,11 @@
           </li>
         </ul>
       </div>
+      
+    {% if object.get_mini_audit %}
+    [TODO] Add verificarion of persmission to view audit
+      <div class="container mt-auto ">
+        <span class="text-body-secondary fw-light ">{{ object.get_mini_audit }}</span>
+      </div>
+    {% endif %}
     </nav>

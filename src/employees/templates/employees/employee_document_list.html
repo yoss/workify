@@ -1,0 +1,59 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if documents.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Signature day</th>
+            <th scope="col" >Type</th>      
+            {% if user_can_change_employee %}
+            <th scope="col" >Comment [?]</th>
+            {% endif %}
+            <th scope="col" >Reference</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in documents %}
+        <tr scope="row">
+            <td>{{forloop.counter}}</td>
+            <td>
+                <a href="{{document.get_absolute_url}}" target="_blank">{{ document.name }}</a>
+                <a href="{{document.get_absolute_url}}" target="_blank"><span data-feather="external-link"></span></a>
+            </td>
+            <td>{{ document.sign_date }}</td>
+            <td>{{ document.document_type }}</td>
+            {% if user_can_change_employee %}
+            <td>
+                {% if document.comment %}
+                {{ document.comment }}
+                {% endif %}
+            </td>
+            {% endif %}
+            <td>
+                {% if document.reference_document %}
+                    {{ document.reference_document }} 
+                {% endif %}
+            </td>
+            <td>                
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                  {% render_button document.buttons %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

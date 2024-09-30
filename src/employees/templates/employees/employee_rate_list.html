@@ -1,0 +1,66 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if rates.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Type</th>
+            <th scope="col" >Chargable</th>
+            <th scope="col" >Internal</th>
+            <th scope="col" >Currency</th>
+            <th scope="col" >Valid from</th>
+            <th scope="col" >Valid to</th>            
+            {% if user_can_change_employee %}
+            <th scope="col" >Comment</th>
+            {% endif %}
+            <th scope="col" >Document</th>
+            <th scope="col" > </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rate in rates %}
+        <tr scope="row">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ rate.get_rate_type_display }}</td>
+            <td>{{ rate.chargable_rate }}</td>
+            <td>{{ rate.basic_rate }}</td>
+            <td>{{ rate.currency }}</td>
+            <td>{{ rate.valid_from }}</td>
+            <td>
+                {% if rate.valid_to %}
+                    {{ rate.valid_to }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            {% if user_can_change_employee %}
+            <td>{{ rate.comment }}</td>
+            {% endif %}
+            <td>
+                
+                {% if rate.reference_document %}
+                <a href="{{rate.reference_document.get_absolute_url}}">{{ rate.reference_document }}</a> 
+                <a href="{{rate.reference_document.get_absolute_url}}"><span data-feather="external-link"></span></a> 
+                {% endif %}
+            </td>
+            <td>                
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                    {% render_button rate.buttons %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

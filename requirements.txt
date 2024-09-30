@@ -6,6 +6,7 @@ charset-normalizer==3.3.2
 crispy-bootstrap5==2024.2
 cryptography==42.0.8
 Django==4.2.13
+django-autocomplete-light==3.11.0
 django-crispy-forms==2.3
 idna==3.7
 msal==1.29.0

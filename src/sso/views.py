@@ -65,9 +65,6 @@ def sso_callback(request):
         messages.error(request, "Permission denied, please contact administrator.")
         return redirect (REDIRECT_LOGIN)
     
-    print(graph_data['userPrincipalName'])
-    print(headers)
-
     login(request, user)
     if user.first_name != graph_data['givenName'] or user.last_name != graph_data['surname']:
         user.first_name = graph_data['givenName']

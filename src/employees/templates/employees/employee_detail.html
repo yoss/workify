@@ -50,124 +50,14 @@
         </div>
     </div>
 </div>
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="documents_section">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb h2">
-        Documents
-      </ol>
-    </nav>          
-    {% if user_can_change_employee %}
-    <div class="btn-toolbar mb-2 mb-md-0">
-      {% render_button new_document_button %}
-    </div>
-    {% endif %}
+<div id="document-table-container" hx-get="{{ employee.get_documents_list_url }}" hx-trigger="load" hx-target="#document-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
 </div>
-<table class="table table-striped align-middle table-hover">
-    <thead>
-        <tr>
-            <th scope="col" >#</th>
-            <th scope="col" >Name</th>
-            <th scope="col" >Signature day</th>
-            <th scope="col" >Type</th>      
-            {% if user_can_change_employee %}
-            <th scope="col" >Comment</th>
-            {% endif %}
-            <th scope="col" >Reference</th>
-            <th scope="col" ></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for document in documents %}
-        <tr scope="row">
-            <td>{{forloop.counter}}</td>
-            <td>{{ document.name }}</td>
-            <td>{{ document.sign_date }}</td>
-            <td>{{ document.get_document_type_display }}</td>
-            {% if user_can_change_employee %}
-            <td>
-                {% if document.comment %}
-                {{ document.comment }}
-                {% endif %}
-            </td>
-            {% endif %}
-            <td>
-                {% if document.reference_document %}
-                <a href="{{document.reference_document.document_file.url}}">{{ document.reference_document }}</a> 
-                <a href="{{document.reference_document.document_file.url}}"><span data-feather="external-link"></span></a> 
-                {% endif %}
-            </td>
-            <td>                
-                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
-                  {% render_button document.buttons %}
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="rates_section">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb h2">
-        Rates
-      </ol>
-    </nav>          
-      
-    {% if user_can_change_employee %}
-    <div class="btn-toolbar mb-2 mb-md-0">
-      {% render_button new_rate_button  %}
-    </div>
-    {% endif %}
+<div id="rates-table-container" hx-get="{{ employee.get_rates_list_url }}" hx-trigger="load" hx-target="#rates-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
 </div>
-<table class="table table-striped align-middle table-hover">
-    <thead>
-        <tr>
-            <th scope="col" >#</th>
-            <th scope="col" >Type</th>
-            <th scope="col" >Chargable</th>
-            <th scope="col" >Internal</th>
-            <th scope="col" >Currency</th>
-            <th scope="col" >Valid from</th>
-            <th scope="col" >Valid to</th>            
-            {% if user_can_change_employee %}
-            <th scope="col" >Comment</th>
-            {% endif %}
-            <th scope="col" >Document</th>
-            <th scope="col" > </th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for rate in rates %}
-        <tr scope="row">
-            <td>{{ forloop.counter }}</td>
-            <td>{{ rate.get_rate_type_display }}</td>
-            <td>{{ rate.chargable_rate }}</td>
-            <td>{{ rate.basic_rate }}</td>
-            <td>{{ rate.currency }}</td>
-            <td>{{ rate.valid_from }}</td>
-            <td>
-                {% if rate.valid_to %}
-                    {{ rate.valid_to }}
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-            {% if user_can_change_employee %}
-            <td>{{ rate.comment }}</td>
-            {% endif %}
-            <td>
-                
-                {% if rate.reference_document %}
-                <a href="{{rate.reference_document.document_file.url}}">{{ rate.reference_document }}</a> 
-                <a href="{{rate.reference_document.document_file.url}}"><span data-feather="external-link"></span></a> 
-                {% endif %}
-            </td>
-            <td>                
-                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
-                    {% render_button rate.buttons %}
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+[TODO] PROJECT RATES
+<div id="project-rates-table-container" hx-get="{{ employee.get_rates_list_url }}" hx-trigger="load" hx-target="#project-rates-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
+</div>
 {% endblock %}

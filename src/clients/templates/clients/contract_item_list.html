@@ -1,0 +1,48 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if contract_items.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Value</th>      
+            <th scope="col" >Invoiced</th>      
+            <th scope="col" >Net value</th>
+            <th scope="col" >Dimensions</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in contract_items %}
+        <tr scope="row">
+            <td>{{forloop.counter}}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.value }} {{ item.currency.code }} </td>
+            <td> <a href="#contract-invoice-table-container" hx-get="{{ item.get_invoice_list_url }}" hx-trigger="click" hx-target="#contract-invoice-table-container" hx-swap="innerHTML">[{{ item.invoice_count }}]</a> </td>
+            <td> [todo] </td>
+            <td> {{ item.print_dimensions }} </td>
+            <td class="p-1">
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                {% comment %} <div class="btn-group" role="group"> {% endcomment %}
+                    {% render_button item.buttons %}
+
+                    {% comment %} <a href={{ item.get_update_url }}>[edit]</a> [delete] [add invoice] {% endcomment %}
+
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

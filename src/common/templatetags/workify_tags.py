@@ -23,13 +23,12 @@ def render_breadcrumbs(breadcrumbs):
         li.append (f"<li class='breadcrumb-item {active}'>{inner}</li>")
     return mark_safe(("\n").join(li))
 
-@register.inclusion_tag('templatetags/render_button.html')
-def render_button(button):
-    if isinstance(button, Iterable) and not isinstance(button, str):
-        return {'buttons': button}
-    else:
-        return {'buttons': [button]}
-    
+@register.inclusion_tag('templatetags/button.html')
+def render_button(buttons):
+    if isinstance(buttons, Iterable) and not isinstance(buttons, str):
+        return {'buttons': buttons}
+    return {'buttons': [buttons]}    
+
 @register.simple_tag(takes_context=True)
 def render_sidebar_link(context, title, permission, link, icon = 'arrow-right-circle'):
     request = context['request']

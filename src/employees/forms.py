@@ -1,22 +1,24 @@
 from django.db.models import Q
 from django import forms
 from django.utils.html import format_html
-from .models import Employee, EmployeeGroups, EmployeeDocument, EmployeeDocumentTypes, EmployeeRate
+from .models import Employee, EmployeeDocument, EmployeeRate
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, HTML
 from crispy_forms.bootstrap import FormActions
 from django.utils.text import slugify
 
+from dicts import models as dicts
 
 class EmployeeBaseForm(forms.Form):
     email = forms.EmailField()
     tax_id = forms.CharField(max_length=20, required=False)
-    groups = forms.MultipleChoiceField(choices=EmployeeGroups.choices, widget=forms.CheckboxSelectMultiple, required=False)
+    groups = forms.MultipleChoiceField( widget=forms.CheckboxSelectMultiple, required=False)
     layout = Layout()
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['groups'].choices = dicts.UserGroup.get_choices()
         if not self.initial['user_can_set_user_roles']:
             self.fields['groups'].widget.attrs['disabled'] = 'disabled'
         
@@ -54,6 +56,10 @@ class EmployeeCreateForm(EmployeeBaseForm):
                     HTML(format_html('<a class="btn btn-outline-primary btn-sm" href="{}">Cancel</a>', Employee.list_active_employees_url())),
                 ),
             )
+        
+    def save(self, current_user, commit=True):
+        employee = Employee.create_employee(self.cleaned_data['first_name'], self.cleaned_data['last_name'], self.cleaned_data['email'], self.cleaned_data['tax_id'], current_user=current_user)
+        return employee    
 
 class EmployeeUpdateForm(EmployeeBaseForm):
     slug = forms.CharField(max_length=100, required=False, label='URL Slug')
@@ -77,18 +83,25 @@ class EmployeeUpdateForm(EmployeeBaseForm):
             raise forms.ValidationError("Slug cannot be empty.")
         return slug
     
+    def save(self, current_user, commit=True):
+        employee = self.initial['employee']
+        employee.update(email = self.cleaned_data['email'], tax_id=self.cleaned_data['tax_id'], slug = self.cleaned_data['slug'], current_user=current_user)
+        if self.initial['user_can_set_user_roles']:
+            employee.set_groups(groups=self.cleaned_data.pop('groups' , None), current_user=current_user)
+        return employee
+    
 class EmployeeDocumentForm(forms.ModelForm):
-    name = forms.CharField(max_length=100)
-    sign_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))
-    document_file = forms.FileField()
-    document_type = forms.ChoiceField(choices=EmployeeDocumentTypes.choices)
-    reference_document = forms.ModelChoiceField(queryset=EmployeeDocument.objects.none(), required=False)
-    comment = forms.CharField(widget=forms.Textarea, required=False)
+    # name = forms.CharField(max_length=100)
+    # sign_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))
+    # document_file = forms.FileField()
+    # document_type = forms.ChoiceField(choices=EmployeeDocumentTypes.choices)
+    # reference_document = forms.ModelChoiceField(queryset=EmployeeDocument.objects.none(), required=False)
+    # comment = forms.CharField(widget=forms.Textarea, required=False)
     employee = Employee()
 
     class Meta:
         model = EmployeeDocument
-        fields = ['name', 'sign_date', 'document_file', 'document_type', 'reference_document', 'comment']
+        fields = ['name', 'sign_date', 'file', 'document_type', 'reference_document', 'comment']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -98,11 +111,12 @@ class EmployeeDocumentForm(forms.ModelForm):
             self.employee = self.initial['employee']
 
         self.fields['reference_document'].queryset = EmployeeDocument.objects.filter(employee=self.employee)
+        self.fields['sign_date'].widget = forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d')
 
         self.layout = Layout(
             'name',
             'sign_date',
-            'document_file',
+            'file',
             'document_type',
             'reference_document',
             'comment',
@@ -111,12 +125,11 @@ class EmployeeDocumentForm(forms.ModelForm):
                     HTML(format_html('<a class="btn btn-outline-primary btn-sm" href="{}">Cancel</a>', self.employee.get_absolute_url()))
             ),
         )
-    def save(self, commit=True):
+    def save(self, current_user ,commit=True):
         document = super().save(commit=False)
         document.employee = self.employee
         if commit:
-            document.save()
-            # self.save_m2m()  # Save many-to-many relationships if necessary
+            document.save(current_user=current_user)
         return document
     
     @property
@@ -207,9 +220,9 @@ class EmployeeRateForm(forms.ModelForm):
         
         return cleaned_data
     
-    def save(self, commit=True):
+    def save(self, current_user, commit=True):
         rate = super().save(commit=False)
         rate.employee = self.employee
         if commit:
-            rate.save()
+            rate.save(current_user=current_user)
         return rate

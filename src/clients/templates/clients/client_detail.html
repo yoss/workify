@@ -53,33 +53,12 @@
     <tbody>
     </tbody>
 </table>
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="contracts_section">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb h2">
-        Contracts [active]
-      </ol>
-    </nav>          
-    <div class="btn-toolbar mb-2 mb-md-0">
-      <button>all</button>
-      <button>add</button>
-    </div>
+
+<div id="contract-table-container" hx-get="{{ client.get_contract_list_url }}" hx-trigger="load" hx-target="#contract-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
 </div>
-<table class="table table-striped align-middle table-hover">
-    <thead>
-        <tr>
-            <th scope="col" >#</th>
-            <th scope="col" >Name</th>
-            <th scope="col" >Created on</th>
-            <th scope="col" >Owner</th>      
-            <th scope="col" >Comment</th>
-            <th scope="col" >Value</th>
-            <th scope="col" >Documents</th>
-            <th scope="col" ></th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
+
+
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="invoices_section">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb h2">

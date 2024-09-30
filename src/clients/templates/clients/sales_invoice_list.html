@@ -1,0 +1,54 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="invoices_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if sales_invoices.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Number</th>
+            <th scope="col" >Value</th>
+            <th scope="col" >Issued</th>      
+            <th scope="col" >Due date</th>      
+            <th scope="col" >Status</th>
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in sales_invoices %}
+        <tr scope="row">
+            <td>{{forloop.counter}}</td>
+            <td>
+                <a href="{{ item.get_absolute_url }}" target="_blank">{{ item.number }}</a>
+                <a href="{{ item.get_absolute_url }}" target="_blank"><span data-feather="external-link"></span></a>
+            </td>
+            <td>{{ item.value }} {{ item.currency.code }} </td>
+            <td>{{ item.date }}</td>
+            <td>{{ item.due_date }}</td>
+            <td>
+                {% if item.status == "Paid" %}
+                    <span class="badge bg-success">{{ item.status }}</span>
+                {% elif item.status == "Overdue" %}
+                    <span class="badge bg-danger">{{ item.status }}</span>
+                {% else %}
+                    <span class="badge bg-warning">{{ item.status }}</span>
+                {% endif %}</td>
+            <td class="p-1">
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                    {% render_button item.buttons %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

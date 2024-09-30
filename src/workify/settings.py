@@ -41,6 +41,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'dal',
+    'dal_select2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +53,7 @@ INSTALLED_APPS = [
     'employees',
     'clients',
     'common',
+    'dicts',
     'sso',
     "crispy_forms",
     "crispy_bootstrap5",

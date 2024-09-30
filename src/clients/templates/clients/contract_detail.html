@@ -1,0 +1,24 @@
+{% extends "content.html" %}
+
+{% block main %}
+Contract value:</br>
+Invoiced value:</br>
+Remaining value:</br></br>
+
+Contract start:</br>
+Contract end:</br></br>
+
+Contract owner:</br></br>
+
+LISTS:</br>
+- Documents</br>
+- invoices
+
+
+<div id="contract-item-table-container" hx-get="{{ contract.get_contract_item_list_url }}" hx-trigger="load" hx-target="#contract-item-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
+</div>
+<div id="contract-invoice-table-container" hx-get="{{ contract.get_contract_invoice_list_url }}" hx-trigger="load" hx-target="#contract-invoice-table-container" hx-swap="innerHTML">
+    <div class="spinner"></div>
+</div>
+{% endblock %}

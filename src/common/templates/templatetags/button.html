@@ -1,0 +1,21 @@
+{% for btn in buttons %}
+    {% if btn.form %}
+    <form method="POST" action="{{ btn.action }}">
+        {% csrf_token %}
+    {% endif %}
+    {% if btn.icon %}
+        <div class="btn-group me-2" role="group" >    
+            {% comment %} <a href="{{ url }}" class="btn btn-{{ css_class }} btn-sm" target="{{ target }}"><span data-feather="{{ icon }}"></span></a> {% endcomment %}
+            {% comment %} <a href="{{ url }}" class="btn btn-outline-{{ css_class }} btn-sm" target="{{ target }}">{{ text }}</a> {% endcomment %}
+            <{{btn.open_tag}} {{btn.url}} class="{{btn.icon_css_class}}" {{btn.hx_tags}} {{btn.bs_tags}}><span data-feather="{{btn.icon}}"></{{btn.close_tag}}>
+            <{{btn.open_tag}} {{btn.url}} class="{{btn.text_css_class}}" {{btn.hx_tags}} {{btn.bs_tags}}>{{btn.text}}</{{btn.close_tag}}>
+        </div>
+        <script type="text/javascript"> loadIcon(); </script>
+        {% else %}
+        <{{btn.open_tag}} {{btn.url}} class="{{btn.text_css_class}}" {{btn.hx_tags}} {{btn.bs_tags}}>{{btn.text}}</{{btn.close_tag}}>
+        {% comment %} <a href="{{ url }}" class="btn btn-{{ css_class }} btn-sm me-2" target="{{ target }}">{{ text }}</a> {% endcomment %}
+    {% endif %}
+    {% if btn.form %}
+    </form>
+    {% endif %}
+{% endfor %}
