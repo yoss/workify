@@ -70,8 +70,10 @@ class ContractForm(CrispyFormMixin, forms.ModelForm):
         contract.client = self.initial.pop('client', None)
         
         if contract.owner and contract.owner.is_inactive:
+            # TODO this should be a field validation, not a save instrucion
             raise forms.ValidationError("Cannot assign an inactive employee as the contract owner.")
         if not contract.pk or contract.number != Contract.objects.get(pk=contract.pk).number:
+            # TODO move this to a model save method
             contract.slug = unique_slugify(Contract, contract.number)
         if commit:
             contract.save(current_user=current_user)

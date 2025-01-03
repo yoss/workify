@@ -1,0 +1,15 @@
+{% load workify_tags %}
+{% load crispy_forms_tags %}
+
+<form method="POST" action="{{project.set_budget_url}}">
+<div class="modal-header">
+  <h5 class="modal-title" id="logoutModalLabel">{{ title }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    {% crispy form %}
+</div>
+<div class="modal-footer">
+  {% render_button buttons %}
+</div>
+</form>

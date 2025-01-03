@@ -6,7 +6,7 @@ urlpatterns = [
     path('', views.EmployeeList.as_view(), name='employee-list', kwargs={'all': False}),
     path('all/', views.EmployeeList.as_view(), name='employee-list-all', kwargs={'all': True}),
     path('new/', views.EmployeeCreate.as_view(), name='employee-create'),
-    path('api/', views.EmployeeAutocomplete.as_view(), name='employee-autocomplete'),
+    path('autocomplete/', views.EmployeeAutocomplete.as_view(), name='employee-autocomplete'),
     path('<slug:slug>/', views.EmployeeDetail.as_view(), name='employee-detail'),
     path('<slug:slug>/edit', views.EmployeeUpdate.as_view(), name='employee-update'),
     path('<slug:slug>/deactivate', views.EmployeeDeactivate.as_view(), name='employee-deactivate'),

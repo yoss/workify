@@ -5,6 +5,7 @@ app_name = 'clients'
 urlpatterns = [
     path('', views.ClientList.as_view(), name='client-list', kwargs={'all': False}),
     path('all/', views.ClientList.as_view(), name='client-list-all', kwargs={'all': True}),
+    path('autocomplete/', views.ClientAutocomplete.as_view(), name='client-autocomplete'),
     path('new/', views.ClientCreate.as_view(), name='client-create'),
     path('<slug:slug>/', views.ClientDetail.as_view(), name='client-detail'),
     path('<slug:slug>/edit', views.ClientUpdate.as_view(), name='client-update'),

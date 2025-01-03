@@ -1,0 +1,42 @@
+{% load workify_tags %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom" id="project_budgets_section">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb h2">
+        {% render_breadcrumbs breadcrumbs %}
+      </ol>
+    </nav> 
+    <div class="btn-toolbar mb-md-0">
+        {% render_button top_buttons %}
+    </div> 
+</div>
+{% if project_budgets.count > 0%}
+<table class="table table-striped align-middle table-hover">
+    <thead>
+        <tr>
+            <th scope="col" >#</th>
+            <th scope="col" >Name</th>
+            <th scope="col" >Value</th>
+            <th scope="col" >Start date</th>      
+            <th scope="col" >End date</th>      
+            <th scope="col" ></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in project_budgets %}
+        <tr scope="row" >
+            <td {% if item.is_current %}class="fw-bold"{% endif %}>{{ forloop.counter}}</td>
+            <td {% if item.is_current %}class="fw-bold"{% endif %}>{{ item.budget.name }}</td>
+            <td {% if item.is_current %}class="fw-bold"{% endif %}>{{ item.budget.value }} {{ item.budget.currency }}</td>
+            <td {% if item.is_current %}class="fw-bold"{% endif %}>{{ item.start_date }}</td>
+            <td {% if item.is_current %}class="fw-bold"{% endif %}>{{ item.end_date }}</td>
+            <td class="p-1">
+                <div class="btn-toolbar d-flex justify-content-end" role="toolbar">
+                    {% render_button item.buttons %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

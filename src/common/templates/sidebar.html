@@ -14,6 +14,8 @@
 
           {% render_sidebar_link 'Employees' 'employees.view_employee' 'employees:employee-list' 'users' %}
           {% render_sidebar_link 'Clients' 'clients.view_client' 'clients:client-list' 'briefcase' %}
+          {% render_sidebar_link 'Projects' 'projects.view_project' 'projects:project-list' 'trello' %}
+          {% render_sidebar_link 'Budgets' 'budgets.view_budget' 'budgets:budget-list' 'dollar-sign' %}
            {% comment %}{% sidebar_link 'Projects' 'projects.view_project' 'projects:project-list' 'trello' %}
           {% sidebar_link 'Time reports' 'time_reports.view_time_report' 'time_reports:time-report-list' 'clipboard' %}
           {% sidebar_link 'Approvals' 'project.view_project' 'approvals:approval-list' 'chevrons-right' %}
@@ -24,12 +26,12 @@
           {% sidebar_link 'Budgets' 'budgets.view_budget' 'budgets:list' 'dollar-sign' %}
           {% sidebar_link 'Projects' 'projects.view_project' 'projects:list' 'trello' %} {% endcomment %}
 
-          <li class="nav-item">
+          {% comment %} <li class="nav-item">
             <a class="nav-link" href="#">
               <span data-feather="trello"></span>
               [todo] Projects
             </a>
-          </li>
+          </li> {% endcomment %}
           <li class="nav-item">
             <a class="nav-link" href="#">
               <span data-feather="clipboard"></span>

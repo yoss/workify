@@ -1,0 +1,52 @@
+{% extends "content.html" %}
+{% load static %}
+{% load workify_tags %}
+
+{% block main %}
+    {% if projects.count > 0%}
+    <table class="table table-striped align-middle table-hover">
+        <thead>
+            <tr>
+                <th scope="col" >#</th>
+                <th scope="col" class="col-2">Name</th>
+                <th scope="col" class="col-2">Owner</th>
+                <th scope="col" class="col-2">Managers</th>
+                <th scope="col" class="col-2">Team</th>
+                <th scope="col" class="col-1">Client</th>
+                <th scope="col" >URL</th>
+                <th scope="col" class="col-1">Status</th>
+                <th scope="col" >Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr scope="row">
+                <td>{{forloop.counter}}</td>
+                <td><a href={{ project.get_absolute_url }}>{{ project }}</a> </td>
+                <td>{% render_avatar project.owner %} {{project.owner}}</td>
+                <td>
+                    {% for manager in project.managers.all %}
+                        {{ manager }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for member in project.team_members.all %}
+                        {{ member }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{% if project.client %}<a href="{{ project.client.get_absolute_url }}">{{ project.client }}</a>{% endif %}</td>
+                <td>{% if project.url %}<a href="{{ project.url }}">[link]</a>{% endif %}</td>            
+                <td>
+                    {% if project.is_active %} <span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-secondary">Archived</span>{% endif %}
+                    {% if project.is_public %} <span class="badge bg-primary">Public</span>{% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}
+                    {% if project.is_chargeable %} <span class="badge bg-primary">Chargeable</span>{% else %}<span class="badge bg-secondary">BD</span>{% endif %}
+                </td>
+                <td class="p-1">
+                        {% render_button project.buttons %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock %}

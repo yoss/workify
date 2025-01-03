@@ -1,12 +1,13 @@
 from typing import Any
 from django.db.models.base import Model as Model
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import redirect, render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.contrib import messages  
 from django.utils.html import format_html
+from dal import autocomplete
 
 from common.helpers import Buttons as Btn
 from common.mixins import BreadcrumbsAndButtonsMixin, ObjectToggle, AuditMixin, FileViewMixin
@@ -41,6 +42,13 @@ class ClientList(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, ListView):
         if self.listing_all:
             return Client.objects.all()
         return Client.objects.filter(is_active=True)
+
+class ClientAutocomplete(LoginRequiredMixin, autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Client.objects.all().filter(is_active=True).order_by('name')  
+        if self.q:
+            qs = qs.filter(Q(name__icontains=self.q))
+        return qs
 
 class ClientDetail(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin, DetailView):
     model = Client

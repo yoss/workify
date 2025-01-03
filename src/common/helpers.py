@@ -21,21 +21,6 @@ class Breadcrumbs:
             'badge': badge
         }
         self.items.append(breadcrumb)
-
-    # @classmethod
-    # def create(cls, text, url=None, active=False):
-    #     """
-    #     Creates an instance of Breadcrumbs with the first breadcrumb already added.
-
-    #     :param text: The display text for the breadcrumb.
-    #     :param url: The URL the breadcrumb should link to.
-    #     :param active: Whether the breadcrumb is the current/active page.
-    #     :param badge: A badge to display next to the breadcrumb.
-    #     """
-
-    #     breadcrumbs = cls()
-    #     breadcrumbs.add(text, url, active)
-    #     return breadcrumbs
     
     def __iter__(self):
         """

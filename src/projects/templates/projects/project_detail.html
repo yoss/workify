@@ -1,0 +1,82 @@
+{% extends "content.html" %}
+{% load static %}
+{% load workify_tags %}
+
+{% block main %}
+<div class="container">
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card h-100">
+                <h5 class="card-header">Project Details</h5>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">Status: 
+                            {% if project.is_active %} <span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-secondary">Archived</span>{% endif %}
+                            {% if project.is_public %} <span class="badge bg-primary">Public</span>{% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}
+                            {% if project.is_chargeable %} <span class="badge bg-primary">Chargeable</span>{% else %}<span class="badge bg-secondary">BD</span>{% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            Owner:
+                            <a href="{{ project.owner.get_absolute_url }}" style="text-decoration:none">{% render_avatar project.owner %}</a>
+                            <a href="{{ project.owner.get_absolute_url }}">{{ project.owner }}</a>
+                        </li>
+                    {% if project.url %}
+                        <li class="list-group-item">URL: {{project.url}}</li>
+                    {% endif %}
+                    {% if project.client %}
+                        <li class="list-group-item">
+                            Client: 
+                            <a href="{{ project.client.get_absolute_url }}" style="text-decoration:none">{% render_logo project.client %}</a>
+                            <a href="{{ project.client.get_absolute_url }}">{{ project.client }}</a>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <h5 class="card-header">Project Managers</h5>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for manager in project.managers.all %}
+                        <li class="list-group-item">
+                            <a href="{{ manager.get_absolute_url }}" style="text-decoration:none">{% render_avatar manager %}</a>
+                            <a href="{{ manager.get_absolute_url }}">{{ manager }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <h5 class="card-header">Project Team</h5>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for member in project.team_members.all %}
+                        <li class="list-group-item">
+                            <a href="{{ member.get_absolute_url }}" style="text-decoration:none">{% render_avatar member %}</a>
+                            <a href="{{ member.get_absolute_url }}">{{ member }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+      
+    <div id="project-budgets-container" hx-get="{{ project.get_list_project_bugdets_url }}" hx-trigger="load" hx-target="#project-budgets-container" hx-swap="innerHTML">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="row">
+        list of Time reports <br>
+        list of budgets (one is current)<br>
+        list of contract_items <br>
+        list of invoices_section (ditrect project costs / add invoice button (for project not budget) / time repot items) <br>
+        list of revenue invoices (through budgets > contract_items > invoices) <br>
+
+    </div>
+</div>
+{% endblock %}

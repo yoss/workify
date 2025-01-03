@@ -1,0 +1,28 @@
+{% load workify_tags %}
+{% load crispy_forms_tags %}
+
+<form method="POST" action="{{project.get_add_budget_url}}">
+<div class="modal-header">
+  <h5 class="modal-title" id="logoutModalLabel">Add budget</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    {% crispy form %}
+    <script type="text/javascript">
+        setTimeout(function () {
+          if (yl.functions['select2'] === undefined) {
+            console.log('select2 not loaded yet');
+            window.dispatchEvent(new Event('load'));    
+            //window.dispatchEvent(new Event('dal-init-function'));
+          }
+          else{
+            yl.functions['select2']($, '.modelselect2');
+          }
+        }, 200);
+        
+    </script>
+</div>
+<div class="modal-footer">
+  {% render_button buttons %}
+</div>
+</form>
