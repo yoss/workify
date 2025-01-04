@@ -42,6 +42,7 @@ class EmployeeBaseForm(forms.Form):
 class EmployeeCreateForm(EmployeeBaseForm):
     first_name = forms.CharField()
     last_name = forms.CharField()
+    abbreviation = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,6 +50,7 @@ class EmployeeCreateForm(EmployeeBaseForm):
                 'email', 
                 'first_name',
                 'last_name',
+                'abbreviation',
                 'tax_id',
                 'groups',
                 FormActions(
@@ -58,17 +60,21 @@ class EmployeeCreateForm(EmployeeBaseForm):
             )
         
     def save(self, current_user, commit=True):
-        employee = Employee.create_employee(self.cleaned_data['first_name'], self.cleaned_data['last_name'], self.cleaned_data['email'], self.cleaned_data['tax_id'], current_user=current_user)
+        # employee = Employee.create_employee(self.cleaned_data['first_name'], self.cleaned_data['last_name'], self.cleaned_data['email'], self.cleaned_data['tax_id'], current_user=current_user)
+        employee = Employee.create_employee(self.cleaned_data, current_user=current_user)
+
         return employee    
 
 class EmployeeUpdateForm(EmployeeBaseForm):
     slug = forms.CharField(max_length=100, required=False, label='URL Slug')
+    abbreviation = forms.CharField(max_length=10)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.layout= Layout(
                 'email',
                 'slug',
+                'abbreviation',
                 'tax_id',
                 'groups',
                 FormActions(
@@ -85,7 +91,7 @@ class EmployeeUpdateForm(EmployeeBaseForm):
     
     def save(self, current_user, commit=True):
         employee = self.initial['employee']
-        employee.update(email = self.cleaned_data['email'], tax_id=self.cleaned_data['tax_id'], slug = self.cleaned_data['slug'], current_user=current_user)
+        employee.update(self.cleaned_data, current_user=current_user)
         if self.initial['user_can_set_user_roles']:
             employee.set_groups(groups=self.cleaned_data.pop('groups' , None), current_user=current_user)
         return employee

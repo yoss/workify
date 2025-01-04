@@ -137,6 +137,7 @@ class EmployeeUpdate(BreadcrumbsAndButtonsMixin, PermissionRequiredMixin,  Emplo
             'tax_id': self.employee.tax_id, 
             'employee': self.employee, 
             'groups': employee_groups, 
+            'abbreviation': self.employee.abbreviation,
             'user_can_set_user_roles': user_can_set_user_roles}
 
     def form_valid(self, form):

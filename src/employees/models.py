@@ -20,6 +20,7 @@ class Employee(TrackableModel):
     tax_id = models.CharField(max_length=20, blank=True, null=True)
     avatar = models.ImageField(upload_to='EmployeeAvatar/', blank=True)
     avatar_checksum = models.CharField(blank=True, max_length=50)
+    abbreviation = models.CharField(max_length=10, unique=True)
 
     class Meta:
         permissions = [
@@ -30,10 +31,10 @@ class Employee(TrackableModel):
         ]
 
     @classmethod
-    def create_employee(cls, first_name, last_name, email, tax_id, current_user):
-        user = User.objects.create_user(username=email, email=email, password=None, first_name=first_name, last_name=last_name)
-        slug = unique_slugify(cls, first_name + ' ' + last_name)
-        employee = cls(user=user, tax_id=tax_id, slug=slug)
+    def create_employee(cls, empl_data, current_user):
+        user = User.objects.create_user(username=empl_data['email'], email=empl_data['email'], password=None, first_name=empl_data['first_name'], last_name=empl_data['last_name'])
+        slug = unique_slugify(cls, empl_data['first_name'] + ' ' + empl_data['last_name'])
+        employee = cls(user=user, tax_id=empl_data['tax_id'], slug=slug, abbreviation=empl_data['abbreviation'])
         employee.created_by = current_user
         employee.save(current_user=current_user)
         return employee
@@ -48,7 +49,7 @@ class Employee(TrackableModel):
     def get_create_url(cls): return reverse_lazy('employees:employee-create')
     
     def __str__(self):
-        return self.user.get_full_name()
+        return f"{self.user.get_full_name()} [{self.abbreviation}]"
 
     @property
     def email(self):
@@ -97,13 +98,14 @@ class Employee(TrackableModel):
         return
         
 
-    def update(self, email, tax_id, slug, current_user):
-        self.user.email = email
-        self.user.username = email
+    def update(self, empl_data, current_user):
+        self.user.email = empl_data['email']
+        self.user.username = empl_data['email']
         self.user.save()
-        self.tax_id = tax_id
-        if slug and self.slug != slug:
-            self.slug = unique_slugify(self.__class__, slug)
+        self.tax_id = empl_data['tax_id']
+        self.abbreviation = empl_data['abbreviation']
+        if empl_data['slug'] and self.slug != empl_data['slug']:
+            self.slug = unique_slugify(self.__class__, empl_data['slug'])
         self.save(current_user=current_user)    
         return
 
