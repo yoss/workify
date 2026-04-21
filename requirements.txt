@@ -5,7 +5,7 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 crispy-bootstrap5==2024.2
 cryptography==42.0.8
-Django==4.2.13
+Django==4.2.30
 django-autocomplete-light==3.11.0
 django-crispy-forms==2.3
 idna==3.7
