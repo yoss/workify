@@ -10,7 +10,7 @@ django-autocomplete-light==3.11.0
 django-crispy-forms==2.3
 idna==3.7
 msal==1.29.0
-pillow==10.4.0
+pillow==12.2.0
 pycparser==2.22
 PyJWT==2.8.0
 python-dotenv==1.0.1
